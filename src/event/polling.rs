@@ -7,6 +7,8 @@ use crate::types::PollEvent;
 pub fn setup_event_polling() -> Receiver<PollEvent> {
     let (tx, rx) = tokio::sync::mpsc::channel(32);
     let tick_rate = Duration::from_millis(100);
+
+    
     tokio::spawn(async move {
         loop {
             if tx.is_closed() {
