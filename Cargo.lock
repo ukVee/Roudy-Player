@@ -1550,9 +1550,12 @@ dependencies = [
 name = "roudy"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "dotenv",
  "oauth2",
  "ratatui",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 

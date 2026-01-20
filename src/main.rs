@@ -6,8 +6,13 @@ use ratatui::{
     Terminal,
     backend::CrosstermBackend
 };
+
+use std::panic::{
+    PanicHookInfo,
+    set_hook
+};
 use std::io::stdout;
-use std::panic::{PanicHookInfo, set_hook};
+
 use dotenv::dotenv;
 
 mod api;
@@ -34,7 +39,7 @@ fn cleanup() -> Box<dyn for<'a, 'b> Fn(&'a PanicHookInfo<'b>) + Send + Sync> {
 }
 
 #[tokio::main]
-async fn main() -> tokio::io::Result<()> {
+async fn main() -> anyhow::Result<()> {
     dotenv().ok();
 
     enable_raw_mode()?;

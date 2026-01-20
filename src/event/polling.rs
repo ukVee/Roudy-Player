@@ -1,7 +1,8 @@
-use tokio::{sync::mpsc::Receiver, time::Duration};
-
 use ratatui::crossterm::event::{Event, poll};
-
+use tokio::{
+    sync::mpsc::Receiver,
+    time::Duration,
+};
 use crate::types::PollEvent;
 
 pub fn setup_event_polling() -> Receiver<PollEvent> {
@@ -17,12 +18,12 @@ pub fn setup_event_polling() -> Receiver<PollEvent> {
             if poll(tick_rate).unwrap() {
                 if let Event::Key(key) = ratatui::crossterm::event::read().unwrap() {
                     if let Err(error) = tx.send(PollEvent::Input(key)).await {
-                        println!("DEBUG Send Input: \n {error}");
+                        println!("Send Input: \n {error}");
                     }
                 }
             } else if !tx.is_closed() {
                 if let Err(error) = tx.send(PollEvent::Tick).await {
-                    println!("DEBUG Send Tick: \n {error}");
+                    println!("Send Tick: \n {error}");
                 }
             }
         }

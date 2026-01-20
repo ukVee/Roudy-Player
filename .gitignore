@@ -1,2 +1,4 @@
 /target
 .env
+.claude
+auth_credentials.json

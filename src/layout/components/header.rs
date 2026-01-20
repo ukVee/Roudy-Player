@@ -1,17 +1,12 @@
 use ratatui::{
-    widgets::{
-        Block,
-        Borders,
-    },
-    layout::{
-        Alignment,
-    },
+    layout::Alignment,
+    widgets::{Block, Borders},
 };
 
 
 pub fn header() -> Block<'static> {
     Block::default()
-        .title("Roudy Music Player")
+        .title("Roudy SoundCloud Player")
         .borders(Borders::ALL)
         .title_alignment(Alignment::Center)
 }
