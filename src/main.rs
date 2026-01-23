@@ -49,9 +49,12 @@ async fn main() -> anyhow::Result<()> {
     let terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
 
 
-    let mut terminal = event_loop(terminal).await?;
+    let (mut terminal, shutdown_server) = event_loop(terminal).await?;
 
     restore_terminal()?;
     terminal.show_cursor()?;
+    if let Some(shutdown) = shutdown_server {
+        let _ = shutdown.send(());
+    }
     Ok(())
 }

@@ -4,11 +4,10 @@ use ratatui::{
     widgets::{Paragraph, Wrap},
 };
 use crate::{
-    global_state::{ErrorState, GlobalState},
-    layout::components::header::header,
+    global_state::{ErrorState, Roudy, RoudyData}, layout::components::header::header
 };
 
-fn render_login_page(frame: &mut Frame, global_state: &GlobalState, _error_state: &ErrorState) {
+fn render_login_page(frame: &mut Frame, roudy_data: &RoudyData, _error_state: &ErrorState) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
@@ -17,16 +16,14 @@ fn render_login_page(frame: &mut Frame, global_state: &GlobalState, _error_state
         ])
         .split(frame.area());
 
-    let text = match &global_state.login_url {
-        Some(login_url) => format!("Login URL: {}", login_url),
-        None => "Press L to login to SoundCloud".to_string(),
-    };
+    let text = "Press L to login to SoundCloud".to_string();
+    
     let paragraph = Paragraph::new(text)
         .wrap(Wrap {trim: true});
     frame.render_widget(paragraph, chunks[0]);
 }
 
-fn render_main_page(frame: &mut Frame, global_state: &GlobalState, _error_state: &ErrorState) {
+fn render_main_page(frame: &mut Frame, roudy_data: &RoudyData, _error_state: &ErrorState) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
@@ -39,14 +36,12 @@ fn render_main_page(frame: &mut Frame, global_state: &GlobalState, _error_state:
     frame.render_widget(header(), chunks[0]);
 }
 
-pub fn ui(frame: &mut Frame, global_state: &GlobalState, error_state: &ErrorState) {
+pub fn ui(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, error_state: &ErrorState) {
     
-    if global_state.logged_in {
-        render_main_page(frame, global_state, error_state);
+    if roudy.logged_in {
+        render_main_page(frame, roudy_data, error_state);
     } else {
-        render_login_page(frame, global_state, error_state);
+        render_login_page(frame, roudy_data, error_state);
     }
-
-
 
 }

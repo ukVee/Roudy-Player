@@ -1,2 +1,2 @@
-pub mod soundcloud;
 pub mod server;
+pub mod soundcloud;
