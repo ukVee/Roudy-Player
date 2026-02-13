@@ -27,7 +27,7 @@ pub async fn event_loop(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> any
 
     let mut get_access_token: GetAccessToken = None;
     let mut csrf_token: Option<oauth2::CsrfToken> = None;
-    
+    const PAGES: usize = 2;
     loop {
         if let Ok(polling_event) = keybind_receiver.try_recv() {
             match polling_event {
@@ -47,9 +47,13 @@ pub async fn event_loop(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> any
                                 panic!("Failed to make login url: \n {e}")
                             }
 
+                        } 
+                    } else if key.code == KeyCode::Tab && global_state.logged_in {
+                        let mut new_tab = global_state.selected_tab +1;
+                        if new_tab >= PAGES {
+                            new_tab = 0;
                         }
-
-                        
+                        Roudy::update(&mut global_state, RoudyMessage::ChangeTab(new_tab));
                     }
                 }
                 PollEvent::Tick => {

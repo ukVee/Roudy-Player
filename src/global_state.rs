@@ -2,15 +2,17 @@ use oauth2::url::Url;
 
 pub enum RoudyMessage {
     Login,
+    ChangeTab(usize)
 } 
 pub struct Roudy {
     pub logged_in: bool,
-
+    pub selected_tab: usize,
 }
 impl Roudy {
     pub fn new() -> Self {
         Self {
             logged_in: false,
+            selected_tab: 0,
         }
     }
 
@@ -18,6 +20,9 @@ impl Roudy {
         match msg {
             RoudyMessage::Login => {
                 model.logged_in = true;
+            },
+            RoudyMessage::ChangeTab(new_tab) => {
+                model.selected_tab = new_tab;
             }
         }
         None
@@ -30,8 +35,8 @@ pub enum RoudyDataMessage {
     SetTokenPath(String)
 }
 pub struct RoudyData {
-    login_url: Option<Url>,    
-    token_path: Option<String>,
+    pub login_url: Option<Url>,    
+    pub token_path: Option<String>,
 }
 impl RoudyData {
     pub fn new() -> Self {
@@ -69,7 +74,7 @@ pub struct ErrorState {
 }
 
 impl ErrorState {
-    pub fn new() -> ErrorState {
+    pub fn new() -> Self {
         Self {
             failed_to_parse_code_param: false,
             csrf_token_does_not_match: false,
