@@ -74,7 +74,7 @@ pub enum ApiDataMessage {
     ProfileFetched(String)
 }
 pub struct ApiData {
-    profile: Option<String>,
+    pub profile: Option<String>,
 }
 impl ApiData {
     pub fn new() -> Self {

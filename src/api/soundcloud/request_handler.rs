@@ -4,6 +4,7 @@ use std::fs;
 use tokio::sync::mpsc::{Receiver, Sender};
 pub enum ClientEvent {
     GetProfile,
+    Shutdown,
 }
 
 pub fn validate_path(path: Option<String>) -> String {
@@ -45,6 +46,10 @@ pub async fn request_handler(token_path: &String) -> Result<(Sender<ClientEvent>
                                 let _ = data_tx.send(e.to_string());
                             }
                         }
+                    }
+                    ClientEvent::Shutdown => {
+                        event_rx.close();
+                        break
                     }
                 };
             };
