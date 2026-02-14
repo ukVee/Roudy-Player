@@ -21,10 +21,6 @@ pub fn setup_event_polling() -> Receiver<PollEvent> {
                         println!("Send Input: \n {error}");
                     }
                 }
-            } else if !tx.is_closed() {
-                if let Err(error) = tx.send(PollEvent::Tick).await {
-                    println!("Send Tick: \n {error}");
-                }
             }
         }
     });

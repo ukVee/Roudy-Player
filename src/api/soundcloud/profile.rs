@@ -2,7 +2,7 @@ use reqwest::Error;
 
 
 
-pub async fn get_profile(client: reqwest::Client, token: &str) -> Result<String, Error> {
+pub async fn get_profile(client: &reqwest::Client, token: &str) -> Result<String, Error> {
     let res = client
         .get("https://api.soundcloud.com/me")
         .header("Authorization", format!("OAuth {}", token))

@@ -11,7 +11,6 @@ use std::{
 
 pub enum PollEvent {
     Input(KeyEvent),
-    Tick,
 }
 
 

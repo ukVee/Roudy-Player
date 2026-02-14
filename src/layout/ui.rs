@@ -4,7 +4,15 @@ use ratatui::{
     widgets::{Paragraph, Wrap},
 };
 use crate::{
-    global_state::{ErrorState, Roudy, RoudyData}, layout::components::header::{header, nav_bar},
+    global_state::{ErrorState, Roudy, RoudyData},
+    layout::pages::{
+        profile::render_profile_page,
+        home::render_home_page,
+    },
+    layout::components::{
+        header::{header, nav_bar}
+}
+
 };
 
 use crate::layout::pages::login::render_login_page;
@@ -25,6 +33,15 @@ fn render_main_page(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, _e
     let (header, header_area) = header(chunks[0]);
     frame.render_widget(header, chunks[0]);
     frame.render_widget(nav_bar(roudy.selected_tab), header_area);
+    match roudy.selected_tab {
+        0 => {//home page
+            frame.render_widget(render_home_page(), chunks[1]);
+        },
+        1 => {//profile page
+            frame.render_widget(render_profile_page(), chunks[1]);
+        },
+        _ => {}
+    }
 }
 
 pub fn ui(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, error_state: &ErrorState) {

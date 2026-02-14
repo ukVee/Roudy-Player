@@ -6,20 +6,23 @@ use ratatui::{
 use std::{
     io::{Stdout},
 };
-use tokio::sync::oneshot::Sender;
+use tokio::sync::mpsc::Receiver;
+use tokio::sync::mpsc::Sender;
 use crate::{
-    api::{server::start_server, soundcloud::auth_client::login_to_sc},
+    api::{server::start_server, soundcloud::{auth_client::login_to_sc, request_handler::{ClientEvent, mount_client_request_handler}}},
     event::keypress_polling::setup_event_polling,
-    global_state::{ErrorState, ErrorMessage, Roudy, RoudyMessage, RoudyData, RoudyDataMessage},
+    global_state::{ErrorMessage, ErrorState, Roudy, RoudyData, RoudyDataMessage, RoudyMessage},
     helpers::{parse_query_params::parse_query_params, refresh_token::save_token_to_file},
     layout::ui::ui,
     types::{GetAccessToken, PollEvent, ServerEvent},
 };
 
-pub async fn event_loop(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> anyhow::Result<(Terminal<CrosstermBackend<Stdout>>, Option<Sender<()>>)> {
+pub async fn event_loop(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> anyhow::Result<(Terminal<CrosstermBackend<Stdout>>, Option<tokio::sync::oneshot::Sender<()>>)> {
     let mut keybind_receiver = setup_event_polling();
     let (mut server_receiver, shutdown_server) = start_server().await?;
     let mut shutdown_server = Some(shutdown_server);
+    let mut data_receiver: Option<Receiver<String>> = None;
+    let mut req_api_data: Option<Sender<ClientEvent>> = None;
 
     let mut global_state = Roudy::new();
     let mut roudy_data = RoudyData::new();
@@ -54,10 +57,16 @@ pub async fn event_loop(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> any
                             new_tab = 0;
                         }
                         Roudy::update(&mut global_state, RoudyMessage::ChangeTab(new_tab));
+                        match new_tab {
+                            0 => {},
+                            1 => {
+                                if let Some(sender) = &global_state.req_api_data {
+                                    let _ = sender.send(ClientEvent::GetProfile).await;
+                                }
+                            }
+                            _ => {}
+                        }
                     }
-                }
-                PollEvent::Tick => {
-                    
                 }
             }
         }
@@ -85,6 +94,16 @@ pub async fn event_loop(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> any
                                 if let Some(saved_token_path) = save_token_to_file(auth_token) {
                                     Roudy::update(&mut global_state, RoudyMessage::Login);
                                     RoudyData::update(&mut roudy_data, RoudyDataMessage::SetTokenPath(saved_token_path));
+                                    match mount_client_request_handler(&roudy_data).await {
+                                        Ok(sender) => {
+                                            // let _ = sender.send(ClientEvent::GetProfile).await;
+                                            req_api_data = Some(sender.0);
+                                            data_receiver = Some(sender.1);
+                                        },
+                                        Err(_) => {
+                                            ErrorState::update(&mut error_state, ErrorMessage::FailedMountClientRequestHandler);
+                                        }
+                                    }
                                 }
                                 if let Some(shutdown) = shutdown_server.take() {
                                     if let Err(_) = shutdown.send(()) {
@@ -103,10 +122,11 @@ pub async fn event_loop(mut terminal: Terminal<CrosstermBackend<Stdout>>) -> any
                 }
             }
         }
-
+        
         terminal.draw(|f| {
             ui(f, &global_state, &roudy_data, &error_state);
         })?;
     }
     Ok((terminal, shutdown_server))
 }
+

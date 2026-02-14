@@ -3,7 +3,7 @@ use ratatui::widgets::{Block, Borders};
 
 
 
-pub fn render_profile_page() -> Block<'static> {
+pub fn render_home_page() -> Block<'static> {
     Block::default()
         .borders(Borders::LEFT | Borders::RIGHT)
 }

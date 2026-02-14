@@ -1,18 +1,26 @@
 use oauth2::url::Url;
+use tokio::sync::mpsc::{Receiver, Sender};
+
+use crate::api::soundcloud::request_handler::ClientEvent;
 
 pub enum RoudyMessage {
     Login,
-    ChangeTab(usize)
+    ChangeTab(usize),
+    ClientDataHighwayInit((Sender<ClientEvent>, Receiver<String>))
 } 
 pub struct Roudy {
     pub logged_in: bool,
     pub selected_tab: usize,
+    pub req_api_data: Option<Sender<ClientEvent>>,
+    pub api_data_listener: Option<Receiver<String>>,
 }
 impl Roudy {
     pub fn new() -> Self {
         Self {
             logged_in: false,
             selected_tab: 0,
+            req_api_data: None,
+            api_data_listener: None,
         }
     }
 
@@ -23,6 +31,10 @@ impl Roudy {
             },
             RoudyMessage::ChangeTab(new_tab) => {
                 model.selected_tab = new_tab;
+            },
+            RoudyMessage::ClientDataHighwayInit(comunication_pair) => {
+                model.req_api_data = Some(comunication_pair.0);
+                model.api_data_listener = Some(comunication_pair.1)
             }
         }
         None
@@ -58,12 +70,35 @@ impl RoudyData {
     }
 }
 
+pub enum ApiDataMessage {
+    ProfileFetched(String)
+}
+pub struct ApiData {
+    profile: Option<String>,
+}
+impl ApiData {
+    pub fn new() -> Self {
+        Self {
+            profile: None,
+        }
+    }
+    pub fn update(model: &mut Self, msg: ApiDataMessage) -> Option<ApiDataMessage> {
+        match msg {
+            ApiDataMessage::ProfileFetched(data) => {
+                model.profile = Some(data);
+            }
+        }
+        None
+    }
+}
+
 
 pub enum ErrorMessage {
     FailedCodeParamParse,
     CSRFTokenDoesntMatch,
     FailedServerShutdown,
     FailedCSRFParamParse,
+    FailedMountClientRequestHandler,
 }
 
 pub struct ErrorState {
@@ -71,6 +106,7 @@ pub struct ErrorState {
     pub csrf_token_does_not_match: bool,
     pub failed_to_shutdown_server: bool,
     pub failed_to_parse_csrf_param: bool,
+    pub failed_to_mount_client_request_handler: bool,
 }
 
 impl ErrorState {
@@ -80,6 +116,7 @@ impl ErrorState {
             csrf_token_does_not_match: false,
             failed_to_shutdown_server: false,
             failed_to_parse_csrf_param: false,
+            failed_to_mount_client_request_handler: false,
         }
     }
 
@@ -96,6 +133,9 @@ impl ErrorState {
             }
             ErrorMessage::FailedCSRFParamParse => {
                 error_model.failed_to_parse_csrf_param = true;
+            }
+            ErrorMessage::FailedMountClientRequestHandler => {
+                error_model.failed_to_mount_client_request_handler = true;
             }
         }
     }
