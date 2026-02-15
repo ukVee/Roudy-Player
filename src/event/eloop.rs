@@ -36,7 +36,7 @@ pub async fn event_loop(
 
     let mut get_access_token: GetAccessToken = None;
     let mut csrf_token: Option<oauth2::CsrfToken> = None;
-    const PAGES: usize = 2;
+    const PAGES: usize = 3;
     loop {
         if let Ok(polling_event) = keybind_receiver.try_recv() {
             match polling_event {

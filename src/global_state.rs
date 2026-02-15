@@ -6,21 +6,16 @@ use crate::api::request_handler::ClientEvent;
 pub enum RoudyMessage {
     Login,
     ChangeTab(usize),
-    ClientDataHighwayInit((Sender<ClientEvent>, Receiver<String>))
 } 
 pub struct Roudy {
     pub logged_in: bool,
     pub selected_tab: usize,
-    pub req_api_data: Option<Sender<ClientEvent>>,
-    pub api_data_listener: Option<Receiver<String>>,
 }
 impl Roudy {
     pub fn new() -> Self {
         Self {
             logged_in: false,
             selected_tab: 0,
-            req_api_data: None,
-            api_data_listener: None,
         }
     }
 
@@ -32,10 +27,6 @@ impl Roudy {
             RoudyMessage::ChangeTab(new_tab) => {
                 model.selected_tab = new_tab;
             },
-            RoudyMessage::ClientDataHighwayInit(comunication_pair) => {
-                model.req_api_data = Some(comunication_pair.0);
-                model.api_data_listener = Some(comunication_pair.1)
-            }
         }
         None
     }

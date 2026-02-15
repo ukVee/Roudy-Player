@@ -5,8 +5,8 @@ use ratatui::{
 };
 use crate::{
     global_state::{ApiData, ErrorState, Roudy, RoudyData},
-    layout::{components::header::{header, nav_bar}, pages::{
-        home::render_home_page, profile::render_profile_page
+    layout::{components::header::render_header_comp, pages::{
+        errors_status::render_errors_status_page, home::render_home_page, profile::render_profile_page
     }}
 
 };
@@ -15,7 +15,7 @@ use crate::layout::pages::login::render_login_page;
 
 
 
-fn render_main_page(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, api_data: &ApiData, _error_state: &ErrorState) {
+fn render_main_page(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, api_data: &ApiData, error_state: &ErrorState) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
@@ -26,16 +26,17 @@ fn render_main_page(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, ap
         ])
         .split(frame.area());
 
-    let (header, header_area) = header(chunks[0]);
-    frame.render_widget(header, chunks[0]);
-    frame.render_widget(nav_bar(roudy.selected_tab), header_area);
+    render_header_comp(frame, chunks[0], roudy.selected_tab);
     match roudy.selected_tab {
-        0 => {//home page
+        0 => {
             render_home_page(frame, chunks[1]);
         },
-        1 => {//profile page
+        1 => {
             render_profile_page(frame, chunks[1], api_data);
         },
+        2 => {
+            render_errors_status_page(frame, chunks[1], error_state);
+        }
         _ => {}
     }
 }
