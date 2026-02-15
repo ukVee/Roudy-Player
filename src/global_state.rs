@@ -1,7 +1,7 @@
 use oauth2::url::Url;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::api::soundcloud::request_handler::ClientEvent;
+use crate::api::request_handler::ClientEvent;
 
 pub enum RoudyMessage {
     Login,

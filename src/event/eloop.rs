@@ -1,9 +1,9 @@
 use crate::{
     api::{
         server::start_server,
+        request_handler::{ClientEvent, mount_client_request_handler},
         soundcloud::{
             auth_client::login_to_sc,
-            request_handler::{ClientEvent, mount_client_request_handler},
         },
     },
     event::keypress_polling::setup_event_polling,
