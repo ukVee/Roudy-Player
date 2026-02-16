@@ -1,8 +1,6 @@
 use oauth2::url::Url;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::api::request_handler::ClientEvent;
-
 pub enum RoudyMessage {
     Login,
     ChangeTab(usize),
@@ -62,21 +60,27 @@ impl RoudyData {
 }
 
 pub enum ApiDataMessage {
-    ProfileFetched(String)
+    ProfileFetched(String),
+    PlaylistsFetched(String),
 }
 pub struct ApiData {
     pub profile: Option<String>,
+    pub playlists: Option<String>,
 }
 impl ApiData {
     pub fn new() -> Self {
         Self {
             profile: None,
+            playlists: None,
         }
     }
     pub fn update(model: &mut Self, msg: ApiDataMessage) -> Option<ApiDataMessage> {
         match msg {
             ApiDataMessage::ProfileFetched(data) => {
                 model.profile = Some(data);
+            }
+            ApiDataMessage::PlaylistsFetched(data) => {
+                model.playlists = Some(data);
             }
         }
         None
@@ -90,6 +94,7 @@ pub enum ErrorMessage {
     FailedServerShutdown,
     FailedCSRFParamParse,
     FailedMountClientRequestHandler,
+    ApiError(String),
 }
 
 pub struct ErrorState {
@@ -98,6 +103,7 @@ pub struct ErrorState {
     pub failed_to_shutdown_server: bool,
     pub failed_to_parse_csrf_param: bool,
     pub failed_to_mount_client_request_handler: bool,
+    pub api_error_log: Vec<String>,
 }
 
 impl ErrorState {
@@ -108,6 +114,7 @@ impl ErrorState {
             failed_to_shutdown_server: false,
             failed_to_parse_csrf_param: false,
             failed_to_mount_client_request_handler: false,
+            api_error_log: Vec::new(),
         }
     }
 
@@ -127,6 +134,9 @@ impl ErrorState {
             }
             ErrorMessage::FailedMountClientRequestHandler => {
                 error_model.failed_to_mount_client_request_handler = true;
+            }
+            ErrorMessage::ApiError(message) => {
+                error_model.api_error_log.push(message);
             }
         }
     }

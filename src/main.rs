@@ -21,6 +21,7 @@ mod types;
 mod layout;
 mod global_state;
 mod helpers;
+mod credentials_manager;
 
 
 use crate::event::eloop::event_loop;

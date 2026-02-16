@@ -1,7 +1,6 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout},
-    widgets::{Paragraph, Wrap},
 };
 use crate::{
     global_state::{ApiData, ErrorState, Roudy, RoudyData},
@@ -29,7 +28,7 @@ fn render_main_page(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, ap
     render_header_comp(frame, chunks[0], roudy.selected_tab);
     match roudy.selected_tab {
         0 => {
-            render_home_page(frame, chunks[1]);
+            render_home_page(frame, chunks[1], api_data);
         },
         1 => {
             render_profile_page(frame, chunks[1], api_data);

@@ -1,10 +1,6 @@
 use crate::{
     api::{
-        server::start_server,
-        request_handler::{ClientEvent, mount_client_request_handler},
-        soundcloud::{
-            auth_client::login_to_sc,
-        },
+        request_handler::{ApiOutput, ClientEvent, mount_client_request_handler}, server::start_server, soundcloud::auth_client::login_to_sc
     },
     event::keypress_polling::setup_event_polling,
     global_state::{ApiData, ApiDataMessage, ErrorMessage, ErrorState, Roudy, RoudyData, RoudyDataMessage, RoudyMessage},
@@ -26,7 +22,7 @@ pub async fn event_loop(
     let mut keybind_receiver = setup_event_polling();
     let (mut server_receiver, shutdown_server) = start_server().await?;
     let mut shutdown_server = Some(shutdown_server);
-    let mut data_receiver: Option<Receiver<String>> = None;
+    let mut data_receiver: Option<Receiver<ApiOutput>> = None;
     let mut req_api_data: Option<Sender<ClientEvent>> = None;
 
     let mut global_state = Roudy::new();
@@ -72,7 +68,11 @@ pub async fn event_loop(
                         }
                         Roudy::update(&mut global_state, RoudyMessage::ChangeTab(new_tab));
                         match new_tab {
-                            0 => {}
+                            0 => {
+                                if let Some(sender) = req_api_data.as_ref() {
+                                    let _ = sender.send(ClientEvent::GetPlaylists).await;
+                                }
+                            }
                             1 => {
                                 if let Some(sender) = req_api_data.as_ref() {
                                     let _ = sender.send(ClientEvent::GetProfile).await;
@@ -156,8 +156,18 @@ pub async fn event_loop(
         }
 
         if let Some(rx) = data_receiver.as_mut() {
-            if let Ok(data) = rx.try_recv() {
-                ApiData::update(&mut api_data, ApiDataMessage::ProfileFetched(data));
+            if let Ok(api_event) = rx.try_recv() {
+                match api_event {
+                    ApiOutput::Error(message) => {
+                        ErrorState::update( &mut error_state, ErrorMessage::ApiError(message));
+                    }
+                    ApiOutput::Profile(data) => {
+                        ApiData::update(&mut api_data, ApiDataMessage::ProfileFetched(data));
+                    }
+                    ApiOutput::Playlists(data) => {
+                        ApiData::update(&mut api_data, ApiDataMessage::PlaylistsFetched(data));
+                    }
+                }
             }
         }
 
