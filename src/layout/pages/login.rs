@@ -18,7 +18,7 @@ pub fn render_login_page(frame: &mut Frame, roudy_data: &RoudyData, _error_state
 
     let text = match &roudy_data.login_url {
         Some(url) => url.to_string(),
-        None => "Press L to login to SoundCloud".to_string()
+        None => "There has been a bug, please restart. \n If that doesnt work then delete your auth_credentials.json".to_string()
     };
     
     

@@ -54,3 +54,13 @@ pub struct AuthCredentials {
     pub expires_at: String,
 
 }
+
+impl AuthCredentials {
+    fn create(access_token: String, refresh_token: String, expires_at: String) -> Self {
+        Self {
+            access_token,
+            refresh_token,
+            expires_at
+        }
+    }
+}

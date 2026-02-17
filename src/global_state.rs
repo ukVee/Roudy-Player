@@ -1,6 +1,4 @@
 use oauth2::url::Url;
-use tokio::sync::mpsc::{Receiver, Sender};
-
 pub enum RoudyMessage {
     Login,
     ChangeTab(usize),
@@ -33,26 +31,20 @@ impl Roudy {
 
 pub enum RoudyDataMessage {
     SetLoginURL(Url),
-    SetTokenPath(String)
 }
 pub struct RoudyData {
     pub login_url: Option<Url>,    
-    pub token_path: Option<String>,
 }
 impl RoudyData {
     pub fn new() -> Self {
         Self {
             login_url: None,
-            token_path: None,
         }
     }
     pub fn update(model: &mut RoudyData, msg: RoudyDataMessage) -> Option<RoudyDataMessage> {
         match msg {
             RoudyDataMessage::SetLoginURL(url) => {
                 model.login_url = Some(url);
-            }
-            RoudyDataMessage::SetTokenPath(path) => {
-                model.token_path = Some(path);
             }
         }
         None
@@ -93,7 +85,7 @@ pub enum ErrorMessage {
     CSRFTokenDoesntMatch,
     FailedServerShutdown,
     FailedCSRFParamParse,
-    FailedMountClientRequestHandler,
+    FailedMountApiRequestHandler,
     ApiError(String),
 }
 
@@ -102,7 +94,7 @@ pub struct ErrorState {
     pub csrf_token_does_not_match: bool,
     pub failed_to_shutdown_server: bool,
     pub failed_to_parse_csrf_param: bool,
-    pub failed_to_mount_client_request_handler: bool,
+    pub failed_to_mount_api_request_handler: bool,
     pub api_error_log: Vec<String>,
 }
 
@@ -113,7 +105,7 @@ impl ErrorState {
             csrf_token_does_not_match: false,
             failed_to_shutdown_server: false,
             failed_to_parse_csrf_param: false,
-            failed_to_mount_client_request_handler: false,
+            failed_to_mount_api_request_handler: false,
             api_error_log: Vec::new(),
         }
     }
@@ -132,8 +124,8 @@ impl ErrorState {
             ErrorMessage::FailedCSRFParamParse => {
                 error_model.failed_to_parse_csrf_param = true;
             }
-            ErrorMessage::FailedMountClientRequestHandler => {
-                error_model.failed_to_mount_client_request_handler = true;
+            ErrorMessage::FailedMountApiRequestHandler => {
+                error_model.failed_to_mount_api_request_handler = true;
             }
             ErrorMessage::ApiError(message) => {
                 error_model.api_error_log.push(message);

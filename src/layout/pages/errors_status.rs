@@ -43,9 +43,9 @@ pub fn render_errors_status_page(frame: &mut Frame, chunk: Rect, error_state: &E
                 .wrap(Wrap {trim:true})
         }
     };
-    let paragraph_two = match error_state.failed_to_mount_client_request_handler {
+    let paragraph_two = match error_state.failed_to_mount_api_request_handler {
         true => {
-            Paragraph::new("Failed to mount client request handler: true")
+            Paragraph::new("Failed to mount api request handler: true")
                 .style(Style::new().red())
                 .wrap(Wrap {trim:true})
         }
