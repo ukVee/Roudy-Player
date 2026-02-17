@@ -2,7 +2,7 @@ use anyhow::Result;
 use tokio::{
     io::{AsyncBufReadExt, AsyncWriteExt, BufReader},
     net::{TcpListener, TcpStream},
-    sync::{mpsc::Receiver, oneshot},
+    sync::{mpsc::{Receiver, Sender}, oneshot},
 };
 use crate::types::ServerEvent;
 
@@ -34,20 +34,18 @@ async fn handle_req(stream: &mut TcpStream) -> Option<String> {
 }
 
 
-pub async fn start_server() -> Result<(Receiver<ServerEvent>, oneshot::Sender<()>)> {
+pub async fn start_server() -> Result<(Receiver<ServerEvent>, Sender<()>)> {
     let listener = TcpListener::bind("127.0.0.1:3231").await?;
     let (event_tx, event_rx) = tokio::sync::mpsc::channel::<ServerEvent>(32);
-    let (shutdown_tx, mut shutdown_rx) = oneshot::channel::<()>();
+    let (shutdown_tx, mut shutdown_rx) = tokio::sync::mpsc::channel::<()>(32);
 
     tokio::spawn(async move {
         loop {
+            if let Ok(_) = shutdown_rx.try_recv() {
+                let _ = event_tx.send(ServerEvent::Shutdown).await;
+                break;
+            }
             tokio::select! {
-                _ = &mut shutdown_rx => {
-                    // graceful shutdown
-                    let _ = event_tx.send(ServerEvent::Shutdown).await;
-                    break;
-                }
-
                 res = listener.accept() => {
                     let (mut stream, _) = match res {
                         Ok(v) => v,
