@@ -30,6 +30,14 @@ pub fn render_errors_status_page(frame: &mut Frame, chunk: Rect, error_state: &E
             
         ])
         .split(horizontal_layout[0]);
+    let split_right = Layout::default()
+            .direction(Horizontal)
+            .margin(1)
+            .constraints([
+                Constraint::Percentage(50),
+                Constraint::Percentage(50),
+            ])
+            .split(horizontal_layout[1]);
 
     let paragraph_one = match error_state.csrf_token_does_not_match {
         true => {
@@ -97,7 +105,14 @@ pub fn render_errors_status_page(frame: &mut Frame, chunk: Rect, error_state: &E
     }
     let api_error_paragraph = Paragraph::new(api_error_string)
         .wrap(Wrap {trim:true});
-    frame.render_widget(api_error_paragraph, horizontal_layout[1]);
+    let mut cred_error_string = "".to_string();
+    for message in &error_state.credentials_error_log {
+        cred_error_string.push_str(format!("{} \n", message).as_str());
+    }
+    let cred_error_paragraph = Paragraph::new(cred_error_string)
+        .wrap(Wrap {trim:true});
+    frame.render_widget(api_error_paragraph, split_right[0]);
+    frame.render_widget(cred_error_paragraph, split_right[1]);
     frame.render_widget(paragraph_one, chunks[0]);
     frame.render_widget(paragraph_two, chunks[1]);
     frame.render_widget(paragraph_three, chunks[2]);

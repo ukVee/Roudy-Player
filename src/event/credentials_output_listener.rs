@@ -1,4 +1,5 @@
 use tokio::sync::mpsc::Receiver;
+use crate::global_state::{ErrorMessage, ErrorState};
 use crate::types::GetAccessToken;
 use crate::{api::soundcloud::auth_client::login_to_sc, credentials_manager::CredentialsOutputEvent, global_state::{RoudyData, RoudyDataMessage}};
 
@@ -14,6 +15,7 @@ pub async fn credentials_listener(
     get_access_token: &mut GetAccessToken,
     csrf_token: &mut Option<oauth2::CsrfToken>,
     access_token: &mut Option<String>,
+    error_state: &mut ErrorState,
     ) -> CredentialsListenerMessage {
     let mut message = CredentialsListenerMessage::None;
     if let Ok(cred_message) = credentials_receiver.try_recv() {
@@ -37,9 +39,8 @@ pub async fn credentials_listener(
                 *access_token = Some(token);
                 message = CredentialsListenerMessage::NewTokenReceived;
             }
-            CredentialsOutputEvent::NoAccessToken => {
-            }
             CredentialsOutputEvent::Error(message) => {
+                ErrorState::update(error_state, ErrorMessage::CredentialsError(message));
             }
         }
     }

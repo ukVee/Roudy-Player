@@ -40,7 +40,7 @@ pub async fn event_loop(
     let mut csrf_token: Option<oauth2::CsrfToken> = None;
     
     loop {
-        let message = credentials_listener(&mut credentials_receiver, &mut roudy_data, &mut get_access_token, &mut csrf_token, &mut access_token).await;
+        let message = credentials_listener(&mut credentials_receiver, &mut roudy_data, &mut get_access_token, &mut csrf_token, &mut access_token, &mut error_state).await;
 
         if message == CredentialsListenerMessage::NewTokenReceived && req_api_data.is_some() && access_token.is_some() {
             let updated_token = access_token.as_ref().expect("should have");

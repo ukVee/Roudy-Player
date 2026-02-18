@@ -10,7 +10,6 @@ use crate::types::AuthCredentials;
 use oauth2::{ClientId, ClientSecret, RefreshToken, TokenUrl, basic::BasicClient};
 pub enum CredentialsOutputEvent {
     AccessToken(String),
-    NoAccessToken,
     Error(String),
     PromptLogin,
 }

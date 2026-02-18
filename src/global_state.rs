@@ -87,6 +87,7 @@ pub enum ErrorMessage {
     FailedCSRFParamParse,
     FailedMountApiRequestHandler,
     ApiError(String),
+    CredentialsError(String),
 }
 
 pub struct ErrorState {
@@ -96,6 +97,7 @@ pub struct ErrorState {
     pub failed_to_parse_csrf_param: bool,
     pub failed_to_mount_api_request_handler: bool,
     pub api_error_log: Vec<String>,
+    pub credentials_error_log: Vec<String>,
 }
 
 impl ErrorState {
@@ -107,6 +109,7 @@ impl ErrorState {
             failed_to_parse_csrf_param: false,
             failed_to_mount_api_request_handler: false,
             api_error_log: Vec::new(),
+            credentials_error_log: Vec::new(),
         }
     }
 
@@ -129,6 +132,9 @@ impl ErrorState {
             }
             ErrorMessage::ApiError(message) => {
                 error_model.api_error_log.push(message);
+            }
+            ErrorMessage::CredentialsError(message) => {
+                error_model.credentials_error_log.push(message);
             }
         }
     }

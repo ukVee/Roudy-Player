@@ -1,5 +1,5 @@
 use crate::{
-    global_state::{ErrorState, Roudy, RoudyData}
+    global_state::{ErrorState, RoudyData}
 };
 use ratatui::{
     Frame,
