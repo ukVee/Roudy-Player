@@ -10,11 +10,9 @@ pub fn render_home_page(frame: &mut Frame, chunk: Rect, api_data: &ApiData) {
         .borders(Borders::LEFT | Borders::RIGHT);
     let block_area = block.inner(chunk);
     frame.render_widget(block, chunk);
-
+    
     if let Some(data) = &api_data.playlists {
-        let paragraph = Paragraph::new(data.to_string())
-            .wrap(Wrap { trim: true});
-        frame.render_widget(paragraph, block_area);
+        
     }
 
 }

@@ -1,4 +1,6 @@
 use oauth2::url::Url;
+
+use crate::api::soundcloud::{playlist::APIPlaylist, profile::APIProfile};
 pub enum RoudyMessage {
     Login,
     ChangeTab(usize),
@@ -52,12 +54,12 @@ impl RoudyData {
 }
 
 pub enum ApiDataMessage {
-    ProfileFetched(String),
-    PlaylistsFetched(String),
+    ProfileFetched(APIProfile),
+    PlaylistsFetched(Vec<APIPlaylist>),
 }
 pub struct ApiData {
-    pub profile: Option<String>,
-    pub playlists: Option<String>,
+    pub profile: Option<APIProfile>,
+    pub playlists: Option<Vec<APIPlaylist>>,
 }
 impl ApiData {
     pub fn new() -> Self {

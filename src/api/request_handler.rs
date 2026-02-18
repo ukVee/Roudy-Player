@@ -1,4 +1,4 @@
-use crate::{api::soundcloud::{playlist::get_playlists, profile::get_profile}, };
+use crate::api::soundcloud::{playlist::{APIPlaylist, get_playlists}, profile::{APIProfile, get_profile}};
 use tokio::sync::mpsc::{Receiver, Sender};
 pub enum ClientEvent {
     GetProfile,
@@ -7,8 +7,8 @@ pub enum ClientEvent {
     UpdateAccessToken(String),
 }
 pub enum ApiOutput {
-    Profile(String),
-    Playlists(String),
+    Profile(APIProfile),
+    Playlists(Vec<APIPlaylist>),
     Error(String),
 }
 
@@ -35,7 +35,7 @@ impl ApiRequestHandler {
                                 let _ = data_tx.send(ApiOutput::Profile(data)).await;
                             }
                             Err(e) => {
-                                let _ = data_tx.send(ApiOutput::Error(e.to_string()));
+                                let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;
                             }
                         }
                     }
