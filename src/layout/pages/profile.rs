@@ -29,7 +29,11 @@ pub fn render_profile_page(frame: &mut Frame, chunk: Rect, api_data: &ApiData) {
     if let Some(api_profile) = &api_data.profile {
         let username_p = Paragraph::new(api_profile.username.clone())
             .wrap(Wrap { trim: true});
-        let description_p = Paragraph::new(api_profile.description.clone())
+        let mut description_text = "No Description.".to_string();
+        if let Some(description) = api_profile.description.as_ref() {
+            description_text = description.clone();
+        }
+        let description_p = Paragraph::new(description_text)
             .wrap(Wrap { trim: true});
         let plan_p = Paragraph::new(api_profile.plan.clone())
             .wrap(Wrap { trim: true});

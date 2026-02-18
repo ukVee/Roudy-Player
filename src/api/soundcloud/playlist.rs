@@ -3,9 +3,9 @@ use reqwest::Error;
 
 #[derive(serde::Deserialize)]
 pub struct APIPlaylist {
-    permalink: String,
-    duration: i64,
-    track_count: i32,
+    pub permalink: String,
+    pub duration: i64,
+    pub track_count: i32,
 }
 
 pub async fn get_playlists(client: &reqwest::Client, token: &str) -> Result<Vec<APIPlaylist>, Error> {
