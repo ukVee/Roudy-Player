@@ -56,11 +56,11 @@ pub struct AuthCredentials {
 }
 
 impl AuthCredentials {
-    fn create(access_token: String, refresh_token: String, expires_at: String) -> Self {
-        Self {
-            access_token,
-            refresh_token,
-            expires_at
+    pub fn is_token_expired(expiration: u64) -> bool {
+        if expiration < std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).expect("Should get time.").as_secs() {
+            true
+        } else {
+            false
         }
     }
 }

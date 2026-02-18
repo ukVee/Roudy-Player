@@ -2,7 +2,11 @@ use tokio::sync::mpsc::Receiver;
 use crate::types::GetAccessToken;
 use crate::{api::soundcloud::auth_client::login_to_sc, credentials_manager::CredentialsOutputEvent, global_state::{RoudyData, RoudyDataMessage}};
 
-
+#[derive(PartialEq)]
+pub enum CredentialsListenerMessage {
+    None,
+    NewTokenReceived
+}
 
 pub async fn credentials_listener(
     credentials_receiver: &mut Receiver<CredentialsOutputEvent>,
@@ -10,7 +14,8 @@ pub async fn credentials_listener(
     get_access_token: &mut GetAccessToken,
     csrf_token: &mut Option<oauth2::CsrfToken>,
     access_token: &mut Option<String>,
-    ) {
+    ) -> CredentialsListenerMessage {
+    let mut message = CredentialsListenerMessage::None;
     if let Ok(cred_message) = credentials_receiver.try_recv() {
         match cred_message {
             CredentialsOutputEvent::PromptLogin => {
@@ -30,6 +35,7 @@ pub async fn credentials_listener(
             }
             CredentialsOutputEvent::AccessToken(token) => {
                 *access_token = Some(token);
+                message = CredentialsListenerMessage::NewTokenReceived;
             }
             CredentialsOutputEvent::NoAccessToken => {
             }
@@ -37,4 +43,5 @@ pub async fn credentials_listener(
             }
         }
     }
+    message
 }

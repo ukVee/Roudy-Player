@@ -4,6 +4,7 @@ pub enum ClientEvent {
     GetProfile,
     GetPlaylists,
     Shutdown,
+    UpdateAccessToken(String),
 }
 pub enum ApiOutput {
     Profile(String),
@@ -17,7 +18,7 @@ pub struct ApiRequestHandler {
 }
 
 impl ApiRequestHandler {
-    pub async fn mount(access_token: String) -> Self {
+    pub async fn mount(mut access_token: String) -> Self {
     let client = reqwest::Client::new();
 
     let (event_tx, mut event_rx) = tokio::sync::mpsc::channel::<ClientEvent>(32);
@@ -48,6 +49,9 @@ impl ApiRequestHandler {
                                 let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;
                             }
                         }
+                    }
+                    ClientEvent::UpdateAccessToken(token) => {
+                        access_token = token;
                     }
                     ClientEvent::Shutdown => {
                         event_rx.close();

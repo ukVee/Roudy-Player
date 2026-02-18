@@ -4,10 +4,10 @@ use tokio::sync::mpsc::{Receiver, Sender};
 use oauth2::{StandardTokenResponse,EmptyExtraTokenFields};
 use oauth2::basic::BasicTokenType;
 use oauth2::TokenResponse;
-
+use dotenv::var;
 use tokio::fs::File;
 use crate::types::AuthCredentials;
-
+use oauth2::{ClientId, ClientSecret, RefreshToken, TokenUrl, basic::BasicClient};
 pub enum CredentialsOutputEvent {
     AccessToken(String),
     NoAccessToken,
@@ -17,7 +17,6 @@ pub enum CredentialsOutputEvent {
 
 pub enum CredentialsEvent {
     Shutdown,
-    RequestAccessToken,
     SaveToken(StandardTokenResponse<EmptyExtraTokenFields,BasicTokenType>)
 }
 
@@ -41,16 +40,6 @@ impl CredentialsManager {
                             
                             break
                         }
-                        CredentialsEvent::RequestAccessToken => {
-                            match &current_credentials {
-                                Some(creds) => {
-                                    let _ = cred_data_sender.send(CredentialsOutputEvent::AccessToken(creds.access_token.clone())).await;
-                                }
-                                None => {
-                                    let _ = cred_data_sender.send(CredentialsOutputEvent::NoAccessToken).await;
-                                }
-                            }
-                        }
                         CredentialsEvent::SaveToken(token) => {
                             let new_creds = CredentialsManager::save_auth_info_to_file(token, &path).await;
                             let _ = cred_data_sender.send(CredentialsOutputEvent::AccessToken(new_creds.access_token.clone())).await;
@@ -71,6 +60,23 @@ impl CredentialsManager {
                             if first_time {//only send the prompt login once
                                 first_time = false;
                                 let _ = cred_data_sender.send(CredentialsOutputEvent::PromptLogin).await;
+                            }
+                        }
+                    }
+                } else {
+                    let expiration: u64 = current_credentials.as_ref().expect("should have credentials").expires_at.parse().expect("Not valid u64");
+                    let is_expired = AuthCredentials::is_token_expired(expiration);
+                    if is_expired {
+                        let new_token = CredentialsManager::refresh_auth_token(current_credentials.as_ref().expect("should have credentials").refresh_token.clone()).await;
+                        match new_token {
+                            Ok(token) => {
+                                let new_credentials = CredentialsManager::save_auth_info_to_file(token, &path).await;
+                                let access_token = new_credentials.access_token.clone();
+                                current_credentials = Some(new_credentials);
+                                let _ = cred_data_sender.send(CredentialsOutputEvent::AccessToken(access_token)).await;
+                            }
+                            Err(_) => {
+
                             }
                         }
                     }
@@ -121,5 +127,28 @@ impl CredentialsManager {
 
         auth_cred
     }
+
+    async fn refresh_auth_token(refresh_token: String) -> anyhow::Result<StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>> {
+        let client_id = var("CLIENT_ID")?;
+        let client_secret = var("CLIENT_SECRET")?;
+        let client = BasicClient::new(ClientId::new(client_id))
+            .set_client_secret(ClientSecret::new(client_secret))
+            .set_auth_type(oauth2::AuthType::RequestBody)
+            .set_token_uri(TokenUrl::new(
+                "https://secure.soundcloud.com/oauth/token".to_string(),
+            )?);
+        let http_client = oauth2::reqwest::ClientBuilder::new()
+            .redirect(oauth2::reqwest::redirect::Policy::none())
+            .build()?;
+
+        let new_token = client
+            .exchange_refresh_token(&RefreshToken::new(refresh_token))
+            .request_async(&http_client)
+            .await?;
+        
+        Ok(new_token)
+    }
+
+
 
 }
