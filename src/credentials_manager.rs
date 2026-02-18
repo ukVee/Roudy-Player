@@ -74,8 +74,8 @@ impl CredentialsManager {
                                 current_credentials = Some(new_credentials);
                                 let _ = cred_data_sender.send(CredentialsOutputEvent::AccessToken(access_token)).await;
                             }
-                            Err(_) => {
-
+                            Err(e) => {
+                                let _ = cred_data_sender.send(CredentialsOutputEvent::Error(e.to_string())).await;
                             }
                         }
                     }

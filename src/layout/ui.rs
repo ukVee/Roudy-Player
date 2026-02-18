@@ -14,7 +14,7 @@ use crate::layout::pages::login::render_login_page;
 
 
 
-fn render_main_page(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, api_data: &ApiData, error_state: &ErrorState) {
+fn render_main_page(frame: &mut Frame, roudy: &Roudy, api_data: &ApiData, error_state: &ErrorState) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
@@ -42,7 +42,7 @@ fn render_main_page(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, ap
 
 pub fn ui(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, api_data: &ApiData, error_state: &ErrorState) {
     if roudy.logged_in {
-        render_main_page(frame, &roudy, &roudy_data, &api_data, &error_state);
+        render_main_page(frame, &roudy, &api_data, &error_state);
     } else {
         render_login_page(frame, &roudy_data, &error_state);
     }
