@@ -28,7 +28,7 @@ fn render_main_page(frame: &mut Frame, roudy: &Roudy, api_data: &ApiData, error_
     render_header_comp(frame, chunks[0], roudy.selected_tab);
     match roudy.selected_tab {
         0 => {
-            render_home_page(frame, chunks[1], api_data);
+            render_home_page(frame, chunks[1], roudy, api_data);
         },
         1 => {
             render_profile_page(frame, chunks[1], api_data);

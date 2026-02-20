@@ -4,7 +4,7 @@ use crate::{
         server::start_server,
     },
     credentials_manager::CredentialsManager,
-    event::{api_output_listener::api_listener, auth_server_listener::auth_server_listener, credentials_output_listener::{CredentialsListenerMessage, credentials_listener}, keypress_output_listener::{KeypressListenerStatus, keypress_listener}, keypress_polling::setup_event_polling},
+    event::{api_output_listener::api_listener, auth_server_listener::auth_server_listener, credentials_output_listener::{CredentialsListenerMessage, credentials_listener}, keybind::{keypress_output_listener::{keypress_listener, KeypressListenerStatus}, keypress_polling::setup_event_polling}},
     global_state::{
         ApiData, ErrorMessage, ErrorState, Roudy, RoudyData, 
         RoudyMessage,
@@ -52,8 +52,10 @@ pub async fn event_loop(
         if signal == KeypressListenerStatus::Shutdown {
             break;
         }
+        if !server_receiver.is_closed() {
+            auth_server_listener(&mut server_receiver, &csrf_token, &mut error_state, &credentials_messenger, &shutdown_auth_server, &mut get_access_token).await;
 
-        auth_server_listener(&mut server_receiver, &csrf_token, &mut error_state, &credentials_messenger, &shutdown_auth_server, &mut get_access_token).await;
+        }
 
         if !request_handler_mounted {
             match access_token.as_ref() {
@@ -73,7 +75,7 @@ pub async fn event_loop(
             }
         }
 
-        api_listener(&mut api_data_receiver, &mut api_data, &mut error_state);
+        api_listener(&mut api_data_receiver, &mut global_state, &mut api_data, &mut error_state);
 
         terminal.draw(|f| {
             ui(f, &global_state, &roudy_data, &api_data, &error_state);

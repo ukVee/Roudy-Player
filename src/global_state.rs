@@ -4,16 +4,22 @@ use crate::api::soundcloud::{playlist::APIPlaylist, profile::APIProfile};
 pub enum RoudyMessage {
     Login,
     ChangeTab(usize),
+    HOMEPAGEUpdateScrollOffset(i32),
+    HOMEPAGEUpdatePlaylistCount(usize),
 } 
 pub struct Roudy {
     pub logged_in: bool,
     pub selected_tab: usize,
+    pub homepage_scroll_offset: i32,
+    pub homepage_playlist_count: usize,
 }
 impl Roudy {
     pub fn new() -> Self {
         Self {
             logged_in: false,
             selected_tab: 0,
+            homepage_scroll_offset: 0,
+            homepage_playlist_count: 0,
         }
     }
 
@@ -21,10 +27,16 @@ impl Roudy {
         match msg {
             RoudyMessage::Login => {
                 model.logged_in = true;
-            },
+            }
             RoudyMessage::ChangeTab(new_tab) => {
                 model.selected_tab = new_tab;
-            },
+            }
+            RoudyMessage::HOMEPAGEUpdateScrollOffset(offset) => {
+                model.homepage_scroll_offset = offset;
+            }
+            RoudyMessage::HOMEPAGEUpdatePlaylistCount(count) => {
+                model.homepage_playlist_count = count;
+            }
         }
         None
     }
