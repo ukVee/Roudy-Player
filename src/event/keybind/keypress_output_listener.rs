@@ -1,7 +1,7 @@
 use ratatui::crossterm::event::KeyCode;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::{api::request_handler::{ApiOutput, ClientEvent}, credentials_manager::{CredentialsEvent, CredentialsOutputEvent}, event::keybind::homepage_keybinds::listen_for_homepage_binds, global_state::{Roudy, RoudyMessage}, types::{PollEvent, ServerEvent}};
+use crate::{api::request_handler::{ApiOutput, ClientEvent}, credentials_manager::{CredentialsEvent, CredentialsOutputEvent}, event::keybind::homepage_keybinds::listen_for_homepage_binds, global_state::{ApiData, Roudy, RoudyMessage}, types::{PollEvent, ServerEvent}};
 
 #[derive(PartialEq)]
 pub enum KeypressListenerStatus {
@@ -18,6 +18,7 @@ pub async fn keypress_listener(
     credentials_messenger: &Sender<CredentialsEvent>,
     shutdown_auth_server: & Sender<()>,
     global_state: &mut Roudy,
+    api_data: &mut ApiData,
     ) -> KeypressListenerStatus {
     const PAGES: usize = 3;
     let mut status: KeypressListenerStatus = KeypressListenerStatus::Continue;
@@ -62,7 +63,7 @@ pub async fn keypress_listener(
                     }
                 }
                 if global_state.selected_tab == 0 {//check if were on the homepage and if so listen for binds
-                    listen_for_homepage_binds(key, global_state).await;
+                    listen_for_homepage_binds(key, &req_api_data, global_state, api_data).await;
                 }
             }
         }

@@ -1,14 +1,16 @@
-use crate::api::soundcloud::{playlist::{APIPlaylist, get_playlists}, profile::{APIProfile, get_profile}};
+use crate::api::soundcloud::{playlist::{APIPlaylist, get_playlists}, playlist_tracks::get_playlist_tracks, profile::{APIProfile, get_profile}};
 use tokio::sync::mpsc::{Receiver, Sender};
 pub enum ClientEvent {
     GetProfile,
     GetPlaylists,
+    GetPlaylistTrack(String),
     Shutdown,
     UpdateAccessToken(String),
 }
 pub enum ApiOutput {
     Profile(APIProfile),
     Playlists(Vec<APIPlaylist>),
+    PlaylistTracks(String),
     Error(String),
 }
 
@@ -44,6 +46,17 @@ impl ApiRequestHandler {
                         match playlist_data {
                             Ok(data) => {
                                 let _ = data_tx.send(ApiOutput::Playlists(data)).await;
+                            }
+                            Err(e) => {
+                                let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;
+                            }
+                        }
+                    }
+                    ClientEvent::GetPlaylistTrack(playlist_urn) => {
+                        let playlist_tracks = get_playlist_tracks(&client, &access_token, playlist_urn).await;
+                        match playlist_tracks {
+                            Ok(data) => {
+                                let _ = data_tx.send(ApiOutput::PlaylistTracks(data)).await;
                             }
                             Err(e) => {
                                 let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;

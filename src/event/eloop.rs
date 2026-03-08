@@ -47,7 +47,7 @@ pub async fn event_loop(
             let _ = req_api_data.as_ref().expect("should have").send(ClientEvent::UpdateAccessToken(updated_token.clone())).await;
         }
 
-        let signal = keypress_listener(&mut keybind_receiver, &mut server_receiver, &mut api_data_receiver, &req_api_data, &mut credentials_receiver, &credentials_messenger, &shutdown_auth_server, &mut global_state).await;
+        let signal = keypress_listener(&mut keybind_receiver, &mut server_receiver, &mut api_data_receiver, &req_api_data, &mut credentials_receiver, &credentials_messenger, &shutdown_auth_server, &mut global_state, &mut api_data).await;
 
         if signal == KeypressListenerStatus::Shutdown {
             break;

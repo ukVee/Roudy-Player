@@ -1,4 +1,4 @@
-use ratatui::{Frame, layout::{self, Alignment, Constraint, Layout, Rect}, widgets::{Block, Borders, Paragraph, Wrap}};
+use ratatui::{Frame, layout::{self, Alignment, Constraint, Layout, Rect}, widgets::{Block, Borders, Paragraph}};
 
 use crate::{global_state::{ApiData, Roudy}};
 
@@ -11,8 +11,8 @@ pub fn render_home_page(frame: &mut Frame, chunk: Rect, global_state: &Roudy, ap
 
     const PLAYLIST_ROW_HEIGHT: u16 = 3;
     let available_rows = block_area.height;
-    let viewable_playlists = available_rows / PLAYLIST_ROW_HEIGHT + 2;
-    
+    let viewable_playlists = available_rows / (PLAYLIST_ROW_HEIGHT + 1);
+
     if let Some(data) = &api_data.playlists {
         let mut constraints: Vec<Constraint> = Vec::new();
         for _ in 0..viewable_playlists {

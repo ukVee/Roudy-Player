@@ -1,4 +1,4 @@
-use reqwest::{Error, Url};
+use reqwest::{Error};
 
 #[derive(serde::Deserialize, Debug)]
 pub struct APIProfile {

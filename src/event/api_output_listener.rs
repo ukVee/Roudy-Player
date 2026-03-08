@@ -16,6 +16,9 @@ pub fn api_listener(api_data_receiver: &mut Option<Receiver<ApiOutput>>, global_
                     Roudy::update(global_state, RoudyMessage::HOMEPAGEUpdatePlaylistCount(data.len()));
                     ApiData::update(api_data, ApiDataMessage::PlaylistsFetched(data));
                 }
+                ApiOutput::PlaylistTracks(data) => {
+                    ApiData::update(api_data, ApiDataMessage::PlaylistTracksFetched(data));
+                }
             }
         }
     }

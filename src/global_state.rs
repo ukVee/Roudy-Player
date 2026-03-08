@@ -68,16 +68,19 @@ impl RoudyData {
 pub enum ApiDataMessage {
     ProfileFetched(APIProfile),
     PlaylistsFetched(Vec<APIPlaylist>),
+    PlaylistTracksFetched(String),
 }
 pub struct ApiData {
     pub profile: Option<APIProfile>,
     pub playlists: Option<Vec<APIPlaylist>>,
+    pub playlist_tracks: Option<String>,
 }
 impl ApiData {
     pub fn new() -> Self {
         Self {
             profile: None,
             playlists: None,
+            playlist_tracks: None,
         }
     }
     pub fn update(model: &mut Self, msg: ApiDataMessage) -> Option<ApiDataMessage> {
@@ -87,6 +90,9 @@ impl ApiData {
             }
             ApiDataMessage::PlaylistsFetched(data) => {
                 model.playlists = Some(data);
+            }
+            ApiDataMessage::PlaylistTracksFetched(data) => {
+                model.playlist_tracks = Some(data);
             }
         }
         None
