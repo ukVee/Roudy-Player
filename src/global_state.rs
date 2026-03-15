@@ -1,25 +1,35 @@
 use oauth2::url::Url;
 
-use crate::api::soundcloud::{playlist::APIPlaylist, profile::APIProfile};
+use crate::api::soundcloud::{playlist::APIPlaylist, playlist_tracks::APIPlaylistTracks, profile::APIProfile};
 pub enum RoudyMessage {
     Login,
     ChangeTab(usize),
-    HOMEPAGEUpdateScrollOffset(i32),
+    HOMEPAGEUpdatePlaylistScrollOffset(i32),
     HOMEPAGEUpdatePlaylistCount(usize),
+    HOMEPAGEChangeSubpage(i32),
+    HOMEPAGEUpdateTracksScrollOffset(i32),
+    HOMEPAGEUpdateTracksCount(usize),
 } 
 pub struct Roudy {
     pub logged_in: bool,
     pub selected_tab: usize,
-    pub homepage_scroll_offset: i32,
+    pub homepage_playlist_scroll_offset: i32,
     pub homepage_playlist_count: usize,
+    pub homepage_subpage: i32, // 0 = playlist carousel 1 = playlist_tracks carousel
+    pub homepage_tracks_scroll_offset: i32,
+    pub homepage_tracks_count: usize,
 }
+
 impl Roudy {
     pub fn new() -> Self {
         Self {
             logged_in: false,
             selected_tab: 0,
-            homepage_scroll_offset: 0,
+            homepage_playlist_scroll_offset: 0,
             homepage_playlist_count: 0,
+            homepage_subpage: 0,
+            homepage_tracks_scroll_offset: 0,
+            homepage_tracks_count: 0,
         }
     }
 
@@ -31,11 +41,20 @@ impl Roudy {
             RoudyMessage::ChangeTab(new_tab) => {
                 model.selected_tab = new_tab;
             }
-            RoudyMessage::HOMEPAGEUpdateScrollOffset(offset) => {
-                model.homepage_scroll_offset = offset;
+            RoudyMessage::HOMEPAGEUpdatePlaylistScrollOffset(offset) => {
+                model.homepage_playlist_scroll_offset = offset;
             }
             RoudyMessage::HOMEPAGEUpdatePlaylistCount(count) => {
                 model.homepage_playlist_count = count;
+            }
+            RoudyMessage::HOMEPAGEChangeSubpage(new_page) => {
+                model.homepage_subpage = new_page;
+            }
+            RoudyMessage::HOMEPAGEUpdateTracksScrollOffset(offset) => {
+                model.homepage_tracks_scroll_offset = offset;
+            }
+            RoudyMessage::HOMEPAGEUpdateTracksCount(count) => {
+                model.homepage_tracks_count = count;
             }
         }
         None
@@ -68,12 +87,12 @@ impl RoudyData {
 pub enum ApiDataMessage {
     ProfileFetched(APIProfile),
     PlaylistsFetched(Vec<APIPlaylist>),
-    PlaylistTracksFetched(String),
+    PlaylistTracksFetched(Vec<APIPlaylistTracks>),
 }
 pub struct ApiData {
     pub profile: Option<APIProfile>,
     pub playlists: Option<Vec<APIPlaylist>>,
-    pub playlist_tracks: Option<String>,
+    pub playlist_tracks: Option<Vec<APIPlaylistTracks>>,
 }
 impl ApiData {
     pub fn new() -> Self {

@@ -1,4 +1,4 @@
-use crate::api::soundcloud::{playlist::{APIPlaylist, get_playlists}, playlist_tracks::get_playlist_tracks, profile::{APIProfile, get_profile}};
+use crate::api::soundcloud::{playlist::{APIPlaylist, get_playlists}, playlist_tracks::{APIPlaylistTracks, get_playlist_tracks}, profile::{APIProfile, get_profile}};
 use tokio::sync::mpsc::{Receiver, Sender};
 pub enum ClientEvent {
     GetProfile,
@@ -10,7 +10,7 @@ pub enum ClientEvent {
 pub enum ApiOutput {
     Profile(APIProfile),
     Playlists(Vec<APIPlaylist>),
-    PlaylistTracks(String),
+    PlaylistTracks(Vec<APIPlaylistTracks>),
     Error(String),
 }
 

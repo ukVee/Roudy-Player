@@ -26,7 +26,7 @@ pub async fn keypress_listener(
     if let Ok(key_pressed) = keybind_receiver.try_recv() {
         match key_pressed {
             PollEvent::Input(key) => {
-                if key.code == KeyCode::Char('q') || key.code == KeyCode::Esc {
+                if key.code == KeyCode::Char('q') {
                     keybind_receiver.close();
                     server_receiver.close();
                     if let Some(rx) = api_data_receiver.as_mut() {

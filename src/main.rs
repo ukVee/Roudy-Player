@@ -36,6 +36,7 @@ fn cleanup() -> Box<dyn for<'a, 'b> Fn(&'a PanicHookInfo<'b>) + Send + Sync> {
     Box::new(|error| {
         restore_terminal().expect("Failed to restore terminal.");
         println!("Oh no: \n{}", error);
+        std::process::exit(1)
     })
 }
 

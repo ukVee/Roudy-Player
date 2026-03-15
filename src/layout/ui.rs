@@ -14,7 +14,7 @@ use crate::layout::pages::login::render_login_page;
 
 
 
-fn render_main_page(frame: &mut Frame, roudy: &Roudy, api_data: &ApiData, error_state: &ErrorState) {
+fn render_main_page(frame: &mut Frame, global_state: &Roudy, api_data: &ApiData, error_state: &ErrorState) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .margin(1)
@@ -25,10 +25,10 @@ fn render_main_page(frame: &mut Frame, roudy: &Roudy, api_data: &ApiData, error_
         ])
         .split(frame.area());
 
-    render_header_comp(frame, chunks[0], roudy.selected_tab);
-    match roudy.selected_tab {
+    render_header_comp(frame, chunks[0], global_state.selected_tab);
+    match global_state.selected_tab {
         0 => {
-            render_home_page(frame, chunks[1], roudy, api_data);
+            render_home_page(frame, chunks[1], global_state, api_data);
         },
         1 => {
             render_profile_page(frame, chunks[1], api_data);

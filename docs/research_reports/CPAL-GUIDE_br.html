@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CPAL-GUIDE</title>
+  <style>
+
+/* Base styles */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.6;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  color: #e0e0e0;
+  background: #1a1a1a;
+}
+
+/* Bionic text */
+.bionic-bold {
+  font-weight: 700;
+}
+
+.bionic-acronym {
+  color: #B19CD9;
+  cursor: help;
+}
+
+.bionic-acronym[title] {
+  border-bottom: 1px dotted #B19CD9;
+}
+
+/* Content styles */
+.bionic-content {
+  position: relative;
+}
+
+.bionic-content h1,
+.bionic-content h2,
+.bionic-content h3,
+.bionic-content h4,
+.bionic-content h5,
+.bionic-content h6 {
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.bionic-content p {
+  margin: 1em 0;
+  position: relative;
+}
+
+.bionic-content pre {
+  background: #2d2d2d;
+  padding: 1em;
+  overflow-x: auto;
+  border-radius: 4px;
+  border: 1px solid #404040;
+}
+
+.bionic-content code {
+  background: #2d2d2d;
+  padding: 0.2em 0.4em;
+  border-radius: 3px;
+  font-family: "SF Mono", "Consolas", "Liberation Mono", Menlo, monospace;
+  font-size: 0.9em;
+  color: #e0e0e0;
+}
+
+.bionic-content pre code {
+  background: none;
+  padding: 0;
+}
+
+.bionic-content blockquote {
+  border-left: 4px solid #505050;
+  margin: 1em 0;
+  padding-left: 1em;
+  color: #a0a0a0;
+}
+
+.bionic-content ul,
+.bionic-content ol {
+  margin: 1em 0;
+  padding-left: 2em;
+}
+
+.bionic-content li {
+  margin: 0.5em 0;
+}
+
+.bionic-content a {
+  color: #6db3f2;
+  text-decoration: none;
+}
+
+.bionic-content a:hover {
+  text-decoration: underline;
+  color: #8ec5f5;
+}
+
+.bionic-content img {
+  max-width: 100%;
+  height: auto;
+}
+
+.bionic-content hr {
+  border: none;
+  border-top: 1px solid #404040;
+  margin: 2em 0;
+}
+
+.bionic-content table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1em 0;
+}
+
+.bionic-content th,
+.bionic-content td {
+  border: 1px solid #404040;
+  padding: 0.5em;
+  text-align: left;
+}
+
+.bionic-content th {
+  background: #2d2d2d;
+}
+
+/* RSVP trigger */
+.rsvp-trigger {
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  margin-right: 8px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+.rsvp-trigger:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.rsvp-trigger:focus {
+  opacity: 1;
+  outline: 2px solid #9370DB;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.rsvp-trigger svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* RSVP modal */
+.rsvp-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, background 0.2s ease, visibility 0.2s;
+}
+
+.rsvp-modal.visible {
+  opacity: 1;
+  visibility: visible;
+  background: rgba(0, 0, 0, 0.85);
+}
+
+.rsvp-modal.hidden {
+  display: none;
+}
+
+.rsvp-container {
+  width: auto;
+  min-width: 320px;
+  max-width: 90%;
+  background: #1a1a1a;
+  border-radius: 12px;
+  padding: 40px 30px 20px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+  transform: scale(0.95);
+  transition: transform 0.2s ease;
+}
+
+.rsvp-modal.visible .rsvp-container {
+  transform: scale(1);
+}
+
+/* Three-word display */
+.rsvp-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: system-ui, -apple-system, sans-serif;
+  margin-bottom: 30px;
+  min-height: 100px;
+  position: relative;
+  overflow: hidden;
+}
+
+.rsvp-word-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  transition: transform 0.12s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.rsvp-prev,
+.rsvp-next {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.25);
+  width: 100px;
+  text-align: center;
+  flex-shrink: 1;
+  transition: all 0.12s cubic-bezier(0.25, 0.1, 0.25, 1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rsvp-prev {
+  text-align: right;
+  padding-right: 15px;
+}
+
+.rsvp-next {
+  text-align: left;
+  padding-left: 15px;
+}
+
+.rsvp-current {
+  font-size: 2.8rem;
+  font-weight: 700;
+  color: #fff;
+  min-width: 100px;
+  text-align: center;
+  flex-shrink: 0;
+  transition: all 0.12s cubic-bezier(0.25, 0.1, 0.25, 1);
+  white-space: nowrap;
+}
+
+/* Animation states */
+.rsvp-display.animating .rsvp-current {
+  transform: scale(1.02);
+}
+
+.rsvp-display.at-start .rsvp-prev {
+  opacity: 0;
+}
+
+.rsvp-display.at-end .rsvp-next {
+  opacity: 0;
+}
+
+.rsvp-display.single-word .rsvp-prev,
+.rsvp-display.single-word .rsvp-next {
+  opacity: 0;
+}
+
+/* Completion state */
+.rsvp-display.completed .rsvp-current {
+  color: #9370DB;
+}
+
+/* Progress bar */
+.rsvp-progress-bar {
+  width: 100%;
+  height: 3px;
+  background: #333;
+  border-radius: 2px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.rsvp-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #9370DB, #B19CD9);
+  border-radius: 2px;
+  transition: width 0.12s ease-out;
+  width: 0%;
+}
+
+/* Controls */
+.rsvp-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.rsvp-btn {
+  background: #333;
+  border: none;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.15s ease;
+  min-width: 50px;
+}
+
+.rsvp-btn:hover {
+  background: #444;
+  transform: translateY(-1px);
+}
+
+.rsvp-btn:active {
+  background: #555;
+  transform: translateY(0);
+}
+
+.rsvp-btn:focus {
+  outline: 2px solid #9370DB;
+  outline-offset: 2px;
+}
+
+.rsvp-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.rsvp-btn.playing {
+  background: #9370DB;
+}
+
+.rsvp-btn.playing:hover {
+  background: #A580E0;
+}
+
+.rsvp-speed {
+  background: #333;
+  border: none;
+  color: #fff;
+  padding: 12px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s ease;
+}
+
+.rsvp-speed:hover {
+  background: #444;
+}
+
+.rsvp-speed:focus {
+  outline: 2px solid #9370DB;
+  outline-offset: 2px;
+}
+
+/* Progress text */
+.rsvp-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 15px;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keyboard shortcuts hint */
+.rsvp-hints {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.rsvp-hints kbd {
+  background: #333;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin: 0 2px;
+  font-family: inherit;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .rsvp-container {
+    width: 90%;
+    min-width: unset;
+    padding: 30px 15px 15px;
+  }
+
+  .rsvp-current {
+    font-size: 2rem;
+    min-width: 150px;
+  }
+
+  .rsvp-prev,
+  .rsvp-next {
+    font-size: 0.9rem;
+    width: 70px;
+  }
+
+  .rsvp-hints {
+    display: none;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <article class="bionic-content">
+<h1><b class="bionic-bold">T</b>he <b class="bionic-bold">com</b>plete <b class="bionic-bold">gu</b>ide <b class="bionic-bold">t</b>o <b class="bionic-bold">c</b>pal <b class="bionic-bold">a</b>nd <b class="bionic-bold">au</b>dio <b class="bionic-bold">pla</b>yback <b class="bionic-bold">f</b>or <b class="bionic-bold">a</b> <b class="bionic-bold">R</b>ust <span class="bionic-acronym">TUI</span> <b class="bionic-bold">pl</b>ayer</h1>
+<p data-paragraph-id="p-1"><strong><span class="rsvp-trigger" data-paragraph-id="p-1" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">c</b>pal <b class="bionic-bold">i</b>s <b class="bionic-bold">t</b>he <b class="bionic-bold">foun</b>dational <b class="bionic-bold">R</b>ust <b class="bionic-bold">cr</b>ate <b class="bionic-bold">f</b>or <b class="bionic-bold">cross</b>-platform <b class="bionic-bold">au</b>dio <b class="bionic-bold">I</b>/<b class="bionic-bold">O</b></strong>, <b class="bionic-bold">a</b>nd <b class="bionic-bold">f</b>or <b class="bionic-bold">y</b>our "<b class="bionic-bold">ro</b>udy" <b class="bionic-bold">Soun</b>dCloud <b class="bionic-bold">pl</b>ayer, <b class="bionic-bold">t</b>he <b class="bionic-bold">op</b>timal <b class="bionic-bold">arch</b>itecture <b class="bionic-bold">pa</b>irs <b class="bionic-bold">c</b>pal <b class="bionic-bold">dir</b>ectly <b class="bionic-bold">w</b>ith <b class="bionic-bold">Sym</b>phonia <b class="bionic-bold">f</b>or <b class="bionic-bold">dec</b>oding — <b class="bionic-bold">n</b>ot <b class="bionic-bold">Ro</b>dio — <b class="bionic-bold">be</b>cause <b class="bionic-bold">Soun</b>dCloud's <span class="bionic-acronym">HLS</span> <b class="bionic-bold">str</b>eaming <b class="bionic-bold">mo</b>del <b class="bionic-bold">de</b>mands <b class="bionic-bold">fine</b>-grained <b class="bionic-bold">co</b>ntrol <b class="bionic-bold">o</b>ver <b class="bionic-bold">ne</b>twork <b class="bionic-bold">buf</b>fering, <b class="bionic-bold">non-</b>seekable <b class="bionic-bold">so</b>urces, <b class="bionic-bold">a</b>nd <b class="bionic-bold">segme</b>nt-level <b class="bionic-bold">se</b>eking <b class="bionic-bold">t</b>hat <b class="bionic-bold">Ro</b>dio's <b class="bionic-bold">abst</b>ractions <b class="bionic-bold">ca</b>nnot <b class="bionic-bold">pr</b>ovide. <b class="bionic-bold">c</b>pal <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7.<b class="bionic-bold">3</b> (<b class="bionic-bold">rel</b>eased <b class="bionic-bold">Feb</b>ruary <b class="bionic-bold">2</b>026) <b class="bionic-bold">intr</b>oduces <b class="bionic-bold">st</b>able <b class="bionic-bold">de</b>vice <b class="bionic-bold">I</b>Ds, <b class="bionic-bold">imp</b>roved <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">beh</b>avior, <b class="bionic-bold">a</b>nd <b class="bionic-bold">bu</b>ffer <b class="bionic-bold">und</b>errun <b class="bionic-bold">rep</b>orting, <b class="bionic-bold">ma</b>king <b class="bionic-bold">i</b>t <b class="bionic-bold">t</b>he <b class="bionic-bold">m</b>ost <b class="bionic-bold">ca</b>pable <b class="bionic-bold">ve</b>rsion <b class="bionic-bold">y</b>et. <b class="bionic-bold">O</b>n <b class="bionic-bold">Li</b>nux, <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">i</b>s <b class="bionic-bold">t</b>he <b class="bionic-bold">de</b>fault <b class="bionic-bold">ba</b>ckend, <b class="bionic-bold">b</b>ut <b class="bionic-bold">Pip</b>eWire <b class="bionic-bold">a</b>nd <b class="bionic-bold">Puls</b>eAudio <b class="bionic-bold">na</b>tive <b class="bionic-bold">bac</b>kends <b class="bionic-bold">a</b>re <b class="bionic-bold">arr</b>iving, <b class="bionic-bold">a</b>nd <b class="bionic-bold">t</b>he <b class="bionic-bold">inte</b>raction <b class="bionic-bold">be</b>tween <b class="bionic-bold">th</b>ese <b class="bionic-bold">so</b>und <b class="bionic-bold">se</b>rvers <b class="bionic-bold">a</b>nd <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">i</b>s <b class="bionic-bold">t</b>he <b class="bionic-bold">si</b>ngle <b class="bionic-bold">bi</b>ggest <b class="bionic-bold">go</b>tcha <b class="bionic-bold">yo</b>u'll <b class="bionic-bold">f</b>ace.</p>
+<p data-paragraph-id="p-2"><span class="rsvp-trigger" data-paragraph-id="p-2" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>his <b class="bionic-bold">gu</b>ide <b class="bionic-bold">co</b>vers <b class="bionic-bold">t</b>he <b class="bionic-bold">f</b>ull <b class="bionic-bold">st</b>ack: <b class="bionic-bold">f</b>rom <b class="bionic-bold">cp</b>al's <b class="bionic-bold">arch</b>itecture <b class="bionic-bold">d</b>own <b class="bionic-bold">t</b>o <b class="bionic-bold">wr</b>iting <b class="bionic-bold">sa</b>mples <b class="bionic-bold">i</b>n <b class="bionic-bold">t</b>he <b class="bionic-bold">au</b>dio <b class="bionic-bold">cal</b>lback, <b class="bionic-bold">th</b>rough <b class="bionic-bold">Li</b>nux <b class="bionic-bold">ba</b>ckend <b class="bionic-bold">sel</b>ection, <b class="bionic-bold">a</b>nd <b class="bionic-bold">u</b>p <b class="bionic-bold">t</b>o <b class="bionic-bold">t</b>he <b class="bionic-bold">com</b>plete <b class="bionic-bold">dec</b>oding <b class="bionic-bold">pip</b>eline <b class="bionic-bold">f</b>rom <b class="bionic-bold">Soun</b>dCloud's <span class="bionic-acronym">AAC</span> <span class="bionic-acronym">HLS</span> <b class="bionic-bold">st</b>reams <b class="bionic-bold">t</b>o <span class="bionic-acronym">PCM</span> <b class="bionic-bold">ou</b>tput.</p>
+<hr>
+<h2><b class="bionic-bold">H</b>ow <b class="bionic-bold">c</b>pal <b class="bionic-bold">mo</b>dels <b class="bionic-bold">au</b>dio: <b class="bionic-bold">ho</b>sts, <b class="bionic-bold">de</b>vices, <b class="bionic-bold">a</b>nd <b class="bionic-bold">st</b>reams</h2>
+<p data-paragraph-id="p-3"><span class="rsvp-trigger" data-paragraph-id="p-3" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">c</b>pal <b class="bionic-bold">org</b>anizes <b class="bionic-bold">au</b>dio <b class="bionic-bold">ar</b>ound <b class="bionic-bold">th</b>ree <b class="bionic-bold">c</b>ore <b class="bionic-bold">abst</b>ractions <b class="bionic-bold">acc</b>essed <b class="bionic-bold">th</b>rough <b class="bionic-bold">th</b>ree <b class="bionic-bold">corre</b>sponding <b class="bionic-bold">tr</b>aits <b class="bionic-bold">i</b>n <code>cpal::traits</code>:</p>
+<p data-paragraph-id="p-4"><strong><span class="rsvp-trigger" data-paragraph-id="p-4" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">H</b>ost</strong> <b class="bionic-bold">repr</b>esents <b class="bionic-bold">a</b>n <span class="bionic-acronym">OS</span> <b class="bionic-bold">au</b>dio <b class="bionic-bold">ba</b>ckend. <b class="bionic-bold">O</b>n <b class="bionic-bold">Li</b>nux, <b class="bionic-bold">t</b>he <b class="bionic-bold">de</b>fault <b class="bionic-bold">h</b>ost <b class="bionic-bold">i</b>s <span class="bionic-acronym">ALSA</span>. <b class="bionic-bold">Opt</b>ional <b class="bionic-bold">ho</b>sts <b class="bionic-bold">in</b>clude <span class="bionic-acronym">JACK</span> (<code>jack</code> <b class="bionic-bold">fe</b>ature), <b class="bionic-bold">Pip</b>eWire (<code>pipewire</code> <b class="bionic-bold">fe</b>ature), <b class="bionic-bold">a</b>nd <b class="bionic-bold">Puls</b>eAudio (<code>pulseaudio</code> <b class="bionic-bold">fe</b>ature). <b class="bionic-bold">Y</b>ou <b class="bionic-bold">g</b>et <b class="bionic-bold">t</b>he <b class="bionic-bold">de</b>fault <b class="bionic-bold">w</b>ith <code>cpal::default_host()</code>, <b class="bionic-bold">o</b>r <b class="bionic-bold">enu</b>merate <b class="bionic-bold">a</b>ll <b class="bionic-bold">comp</b>iled-in <b class="bionic-bold">bac</b>kends <b class="bionic-bold">w</b>ith <code>cpal::available_hosts()</code> <b class="bionic-bold">a</b>nd <b class="bionic-bold">inst</b>antiate <b class="bionic-bold">a</b> <b class="bionic-bold">spe</b>cific <b class="bionic-bold">o</b>ne <b class="bionic-bold">w</b>ith <code>cpal::host_from_id(id)</code>. <b class="bionic-bold">Ba</b>ckend <b class="bionic-bold">sel</b>ection <b class="bionic-bold">i</b>s <strong><b class="bionic-bold">comp</b>ile-time</strong> <b class="bionic-bold">v</b>ia <b class="bionic-bold">Ca</b>rgo <b class="bionic-bold">fea</b>tures, <b class="bionic-bold">b</b>ut <b class="bionic-bold">w</b>hen <b class="bionic-bold">mul</b>tiple <b class="bionic-bold">bac</b>kends <b class="bionic-bold">a</b>re <b class="bionic-bold">com</b>piled <b class="bionic-bold">i</b>n, <b class="bionic-bold">y</b>ou <b class="bionic-bold">ch</b>oose <b class="bionic-bold">be</b>tween <b class="bionic-bold">t</b>hem <b class="bionic-bold">a</b>t <strong><b class="bionic-bold">ru</b>ntime</strong>.</p>
+<p data-paragraph-id="p-5"><strong><span class="rsvp-trigger" data-paragraph-id="p-5" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">De</b>vice</strong> <b class="bionic-bold">repr</b>esents <b class="bionic-bold">a</b> <b class="bionic-bold">phy</b>sical <b class="bionic-bold">o</b>r <b class="bionic-bold">vi</b>rtual <b class="bionic-bold">au</b>dio <b class="bionic-bold">end</b>point. <b class="bionic-bold">A</b> <b class="bionic-bold">H</b>ost <b class="bionic-bold">pro</b>vides <code>default_output_device()</code>, <code>default_input_device()</code>, <b class="bionic-bold">o</b>r <b class="bionic-bold">y</b>ou <b class="bionic-bold">c</b>an <b class="bionic-bold">enu</b>merate <b class="bionic-bold">a</b>ll <b class="bionic-bold">w</b>ith <code>devices()</code> / <code>output_devices()</code>. <b class="bionic-bold">I</b>n <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7, <b class="bionic-bold">de</b>vices <b class="bionic-bold">ga</b>ined <code>id()</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">st</b>able <b class="bionic-bold">ident</b>ification (<b class="bionic-bold">pe</b>rsist <b class="bionic-bold">t</b>his <b class="bionic-bold">ac</b>ross <b class="bionic-bold">ses</b>sions) <b class="bionic-bold">a</b>nd <code>description()</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">human</b>-readable <b class="bionic-bold">di</b>splay, <b class="bionic-bold">rep</b>lacing <b class="bionic-bold">t</b>he <b class="bionic-bold">depr</b>ecated <code>name()</code>.</p>
+<p data-paragraph-id="p-6"><strong><span class="rsvp-trigger" data-paragraph-id="p-6" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">St</b>ream</strong> <b class="bionic-bold">i</b>s <b class="bionic-bold">t</b>he <b class="bionic-bold">ac</b>tive <b class="bionic-bold">au</b>dio <b class="bionic-bold">d</b>ata <b class="bionic-bold">f</b>low. <b class="bionic-bold">Ou</b>tput <b class="bionic-bold">st</b>reams <b class="bionic-bold">de</b>liver <span class="bionic-acronym">PCM</span> <b class="bionic-bold">t</b>o <b class="bionic-bold">t</b>he <b class="bionic-bold">de</b>vice; <b class="bionic-bold">in</b>put <b class="bionic-bold">st</b>reams <b class="bionic-bold">ca</b>pture <b class="bionic-bold">i</b>t. <b class="bionic-bold">St</b>reams <b class="bionic-bold">a</b>re <b class="bionic-bold">cr</b>eated <b class="bionic-bold">v</b>ia <code>device.build_output_stream()</code> <b class="bionic-bold">w</b>ith <b class="bionic-bold">a</b> <b class="bionic-bold">cal</b>lback <b class="bionic-bold">cl</b>osure, <b class="bionic-bold">a</b>nd <b class="bionic-bold">ma</b>naged <b class="bionic-bold">w</b>ith <code>stream.play()</code> <b class="bionic-bold">a</b>nd <code>stream.pause()</code>. <b class="bionic-bold">T</b>he <code>Stream</code> <b class="bionic-bold">st</b>ruct <b class="bionic-bold">m</b>ust <b class="bionic-bold">b</b>e <b class="bionic-bold">k</b>ept <b class="bionic-bold">al</b>ive — <strong><b class="bionic-bold">dro</b>pping <b class="bionic-bold">i</b>t <b class="bionic-bold">sil</b>ently <b class="bionic-bold">st</b>ops <b class="bionic-bold">au</b>dio</strong>, <b class="bionic-bold">wh</b>ich <b class="bionic-bold">i</b>s <b class="bionic-bold">t</b>he <b class="bionic-bold">si</b>ngle <b class="bionic-bold">m</b>ost <b class="bionic-bold">co</b>mmon <b class="bionic-bold">c</b>pal <b class="bionic-bold">fo</b>otgun.</p>
+<pre><code class="language-rust">use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+
+let host = cpal::default_host();
+let device = host.default_output_device().expect("no output device");
+let config = device.default_output_config()?;
+println!("Output: {:?}, format: {:?}, rate: {}Hz, {}ch",
+    device.description()?, config.sample_format(),
+    config.sample_rate(), config.channels());
+</code></pre>
+<p data-paragraph-id="p-7"><span class="rsvp-trigger" data-paragraph-id="p-7" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Confi</b>guration <b class="bionic-bold">fl</b>ows <b class="bionic-bold">th</b>rough <code>SupportedStreamConfigRange</code> (<b class="bionic-bold">w</b>hat <b class="bionic-bold">t</b>he <b class="bionic-bold">de</b>vice <b class="bionic-bold">c</b>an <b class="bionic-bold">d</b>o) <b class="bionic-bold">a</b>nd <code>StreamConfig</code> (<b class="bionic-bold">w</b>hat <b class="bionic-bold">y</b>ou <b class="bionic-bold">re</b>quest). <b class="bionic-bold">A</b> <code>SupportedStreamConfigRange</code> <b class="bionic-bold">re</b>ports <b class="bionic-bold">m</b>in/<b class="bionic-bold">m</b>ax <b class="bionic-bold">sa</b>mple <b class="bionic-bold">ra</b>tes, <b class="bionic-bold">ch</b>annel <b class="bionic-bold">co</b>unt, <b class="bionic-bold">sa</b>mple <b class="bionic-bold">fo</b>rmat, <b class="bionic-bold">a</b>nd <b class="bionic-bold">sup</b>ported <b class="bionic-bold">bu</b>ffer <b class="bionic-bold">si</b>zes. <b class="bionic-bold">C</b>all <code>.with_max_sample_rate()</code> <b class="bionic-bold">t</b>o <b class="bionic-bold">col</b>lapse <b class="bionic-bold">i</b>t <b class="bionic-bold">i</b>nto <b class="bionic-bold">a</b> <b class="bionic-bold">con</b>crete <code>SupportedStreamConfig</code>, <b class="bionic-bold">t</b>hen <code>.into()</code> <b class="bionic-bold">t</b>o <b class="bionic-bold">g</b>et <b class="bionic-bold">a</b> <code>StreamConfig</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">st</b>ream <b class="bionic-bold">cons</b>truction.</p>
+<hr>
+<h2><b class="bionic-bold">Se</b>tting <b class="bionic-bold">u</b>p <b class="bionic-bold">c</b>pal <b class="bionic-bold">o</b>n <b class="bionic-bold">Li</b>nux <b class="bionic-bold">a</b>nd <b class="bionic-bold">under</b>standing <b class="bionic-bold">fe</b>ature <b class="bionic-bold">fl</b>ags</h2>
+<p data-paragraph-id="p-8"><span class="rsvp-trigger" data-paragraph-id="p-8" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">mi</b>nimum <b class="bionic-bold">depe</b>ndency <b class="bionic-bold">i</b>s <b class="bionic-bold">straig</b>htforward:</p>
+<pre><code class="language-toml">[dependencies]
+cpal = "0.17"
+</code></pre>
+<p data-paragraph-id="p-9"><span class="rsvp-trigger" data-paragraph-id="p-9" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">O</b>n <b class="bionic-bold">Li</b>nux, <strong><span class="bionic-acronym">ALSA</span> <b class="bionic-bold">deve</b>lopment <b class="bionic-bold">fi</b>les <b class="bionic-bold">a</b>re <b class="bionic-bold">al</b>ways <b class="bionic-bold">req</b>uired</strong>, <b class="bionic-bold">e</b>ven <b class="bionic-bold">w</b>hen <b class="bionic-bold">tar</b>geting <span class="bionic-acronym">JACK</span> <b class="bionic-bold">o</b>r <b class="bionic-bold">Pip</b>eWire:</p>
+<table>
+<thead>
+<tr>
+<td><b class="bionic-bold">Ba</b>ckend</td>
+<td><b class="bionic-bold">De</b>bian/<b class="bionic-bold">Ub</b>untu</td>
+<td><b class="bionic-bold">Fe</b>dora</td>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><span class="bionic-acronym">ALSA</span> (<b class="bionic-bold">al</b>ways <b class="bionic-bold">req</b>uired)</td>
+<td><code>libasound2-dev</code></td>
+<td><code>alsa-lib-devel</code></td>
+</tr>
+<tr>
+<td><span class="bionic-acronym">JACK</span> (<b class="bionic-bold">opt</b>ional)</td>
+<td><code>libjack-jackd2-dev</code></td>
+<td><code>jack-devel</code></td>
+</tr>
+<tr>
+<td><b class="bionic-bold">Pip</b>eWire (<b class="bionic-bold">opt</b>ional)</td>
+<td><code>libpipewire-0.3-dev</code></td>
+<td><code>pipewire-devel</code></td>
+</tr>
+<tr>
+<td><b class="bionic-bold">Puls</b>eAudio (<b class="bionic-bold">opt</b>ional)</td>
+<td><code>libpulse-dev</code></td>
+<td><code>pulseaudio-libs-devel</code></td>
+</tr>
+</tbody>
+</table>
+<p data-paragraph-id="p-10"><span class="rsvp-trigger" data-paragraph-id="p-10" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">k</b>ey <b class="bionic-bold">fe</b>ature <b class="bionic-bold">fl</b>ags <b class="bionic-bold">f</b>or <b class="bionic-bold">Li</b>nux <b class="bionic-bold">a</b>re:</p>
+<ul>
+<li><strong><code>jack</code></strong> — <b class="bionic-bold">En</b>ables <b class="bionic-bold">t</b>he <span class="bionic-acronym">JACK</span> <b class="bionic-bold">ba</b>ckend. <b class="bionic-bold">Pipe</b>Wire's <span class="bionic-acronym">JACK</span> <b class="bionic-bold">compa</b>tibility <b class="bionic-bold">la</b>yer <b class="bionic-bold">a</b>lso <b class="bionic-bold">wo</b>rks <b class="bionic-bold">h</b>ere.</li>
+<li><strong><code>pipewire</code></strong> — <b class="bionic-bold">Na</b>tive <b class="bionic-bold">Pip</b>eWire <b class="bionic-bold">ba</b>ckend <b class="bionic-bold">v</b>ia <code>pipewire-rs</code>. <b class="bionic-bold">Ad</b>ded <b class="bionic-bold">v</b>ia <span class="bionic-acronym">PR</span> #<b class="bionic-bold">9</b>38; <b class="bionic-bold">m</b>ay <b class="bionic-bold">re</b>quire <b class="bionic-bold">bui</b>lding <b class="bionic-bold">f</b>rom <b class="bionic-bold">g</b>it <b class="bionic-bold">i</b>f <b class="bionic-bold">n</b>ot <b class="bionic-bold">y</b>et <b class="bionic-bold">rel</b>eased <b class="bionic-bold">i</b>n <b class="bionic-bold">0</b>.<b class="bionic-bold">1</b>7.<b class="bionic-bold">3</b>.</li>
+<li><strong><code>pulseaudio</code></strong> — <b class="bionic-bold">Na</b>tive <b class="bionic-bold">Puls</b>eAudio <b class="bionic-bold">ba</b>ckend. <b class="bionic-bold">Ad</b>ded <b class="bionic-bold">v</b>ia <span class="bionic-acronym">PR</span> #<b class="bionic-bold">9</b>57; <b class="bionic-bold">s</b>ame <b class="bionic-bold">re</b>lease <b class="bionic-bold">ca</b>veat <b class="bionic-bold">ap</b>plies.</li>
+<li><strong><code>realtime_audio_thread</code></strong> — <b class="bionic-bold">Pro</b>motes <b class="bionic-bold">t</b>he <b class="bionic-bold">au</b>dio <b class="bionic-bold">cal</b>lback <b class="bionic-bold">th</b>read <b class="bionic-bold">t</b>o <b class="bionic-bold">rea</b>l-time <b class="bionic-bold">pri</b>ority <b class="bionic-bold">us</b>ing <code>audio_thread_priority</code>. <b class="bionic-bold">O</b>n <b class="bionic-bold">Li</b>nux, <b class="bionic-bold">t</b>his <b class="bionic-bold">req</b>uires <code>rtkit</code> <b class="bionic-bold">o</b>r <b class="bionic-bold">appr</b>opriate <code>/etc/security/limits.conf</code> <b class="bionic-bold">en</b>tries.</li>
+<li><strong><code>custom_host</code></strong> — <b class="bionic-bold">Al</b>lows <b class="bionic-bold">user</b>-defined <b class="bionic-bold">H</b>ost/<b class="bionic-bold">De</b>vice/<b class="bionic-bold">St</b>ream <b class="bionic-bold">implem</b>entations.</li>
+</ul>
+<p data-paragraph-id="p-11"><span class="rsvp-trigger" data-paragraph-id="p-11" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <span class="bionic-acronym">MSRV</span> <b class="bionic-bold">f</b>or <b class="bionic-bold">t</b>he <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">ba</b>ckend <b class="bionic-bold">i</b>s <strong><b class="bionic-bold">R</b>ust <b class="bionic-bold">1</b>.<b class="bionic-bold">8</b>2</strong> <b class="bionic-bold">d</b>ue <b class="bionic-bold">t</b>o <b class="bionic-bold">t</b>he <code>alsa-sys</code> <b class="bionic-bold">depe</b>ndency. <b class="bionic-bold">c</b>pal <b class="bionic-bold">it</b>self <b class="bionic-bold">dec</b>lares <code>rust-version = "1.70"</code> <b class="bionic-bold">i</b>n <b class="bionic-bold">Ca</b>rgo.<b class="bionic-bold">t</b>oml, <b class="bionic-bold">b</b>ut <b class="bionic-bold">t</b>he <b class="bionic-bold">ac</b>tual <b class="bionic-bold">mi</b>nimum <b class="bionic-bold">de</b>pends <b class="bionic-bold">o</b>n <b class="bionic-bold">y</b>our <b class="bionic-bold">ta</b>rget <b class="bionic-bold">ba</b>ckend.</p>
+<hr>
+<h2><b class="bionic-bold">Bui</b>lding <b class="bionic-bold">a</b>n <b class="bionic-bold">ou</b>tput <b class="bionic-bold">st</b>ream <b class="bionic-bold">a</b>nd <b class="bionic-bold">t</b>he <b class="bionic-bold">cal</b>lback <b class="bionic-bold">mo</b>del</h2>
+<p data-paragraph-id="p-12"><span class="rsvp-trigger" data-paragraph-id="p-12" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">he</b>art <b class="bionic-bold">o</b>f <b class="bionic-bold">c</b>pal <b class="bionic-bold">i</b>s <code>build_output_stream</code>, <b class="bionic-bold">wh</b>ich <b class="bionic-bold">cr</b>eates <b class="bionic-bold">a</b> <b class="bionic-bold">st</b>ream <b class="bionic-bold">t</b>hat <b class="bionic-bold">ca</b>lls <b class="bionic-bold">y</b>our <b class="bionic-bold">cl</b>osure <b class="bionic-bold">o</b>n <b class="bionic-bold">a</b> <b class="bionic-bold">ded</b>icated <b class="bionic-bold">au</b>dio <b class="bionic-bold">th</b>read <b class="bionic-bold">whe</b>never <b class="bionic-bold">t</b>he <span class="bionic-acronym">OS</span> <b class="bionic-bold">ne</b>eds <b class="bionic-bold">m</b>ore <b class="bionic-bold">sa</b>mples:</p>
+<pre><code class="language-rust">fn build_output_stream&lt;T, D, E&gt;(
+    &amp;self,
+    config: &amp;StreamConfig,
+    data_callback: D,
+    error_callback: E,
+    timeout: Option&lt;Duration&gt;,
+) -&gt; Result&lt;Stream, BuildStreamError&gt;
+where
+    T: SizedSample,
+    D: FnMut(&amp;mut [T], &amp;OutputCallbackInfo) + Send + 'static,
+    E: FnMut(StreamError) + Send + 'static;
+</code></pre>
+<p data-paragraph-id="p-13"><span class="rsvp-trigger" data-paragraph-id="p-13" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">t</b>ype <b class="bionic-bold">par</b>ameter <code>T</code> <b class="bionic-bold">dete</b>rmines <b class="bionic-bold">t</b>he <b class="bionic-bold">sa</b>mple <b class="bionic-bold">fo</b>rmat — <b class="bionic-bold">typ</b>ically <code>f32</code>, <code>i16</code>, <b class="bionic-bold">o</b>r <code>u16</code>. <b class="bionic-bold">T</b>he <b class="bionic-bold">d</b>ata <b class="bionic-bold">cal</b>lback <b class="bionic-bold">rec</b>eives <b class="bionic-bold">a</b> <b class="bionic-bold">mu</b>table <b class="bionic-bold">sl</b>ice <b class="bionic-bold">o</b>f <b class="bionic-bold">inte</b>rleaved <b class="bionic-bold">sa</b>mples. <b class="bionic-bold">F</b>or <b class="bionic-bold">st</b>ereo, <b class="bionic-bold">t</b>he <b class="bionic-bold">la</b>yout <b class="bionic-bold">i</b>s <code>[L0, R0, L1, R1, ...]</code>. <b class="bionic-bold">A</b> <strong><b class="bionic-bold">fr</b>ame</strong> <b class="bionic-bold">i</b>s <b class="bionic-bold">o</b>ne <b class="bionic-bold">sa</b>mple <b class="bionic-bold">p</b>er <b class="bionic-bold">ch</b>annel, <b class="bionic-bold">s</b>o <b class="bionic-bold">t</b>he <b class="bionic-bold">bu</b>ffer <b class="bionic-bold">con</b>tains <code>buffer_length / channels</code> <b class="bionic-bold">fr</b>ames. <b class="bionic-bold">Y</b>ou <b class="bionic-bold">it</b>erate <b class="bionic-bold">b</b>y <b class="bionic-bold">fr</b>ame <b class="bionic-bold">us</b>ing <code>data.chunks_mut(channels)</code>.</p>
+<p data-paragraph-id="p-14"><span class="rsvp-trigger" data-paragraph-id="p-14" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">He</b>re's <b class="bionic-bold">a</b> <b class="bionic-bold">com</b>plete <b class="bionic-bold">pla</b>yback <b class="bionic-bold">pa</b>ttern <b class="bionic-bold">t</b>hat <b class="bionic-bold">gen</b>erates <b class="bionic-bold">a</b> <b class="bionic-bold">44</b>0Hz <b class="bionic-bold">s</b>ine <b class="bionic-bold">w</b>ave:</p>
+<pre><code class="language-rust">use cpal::traits::{DeviceTrait, HostTrait, StreamTrait};
+use cpal::{FromSample, SizedSample};
+
+fn main() -&gt; anyhow::Result&lt;()&gt; {
+    let host = cpal::default_host();
+    let device = host.default_output_device().expect("no output device");
+    let supported = device.default_output_config()?;
+    let sample_rate = supported.sample_rate() as f32;
+    let channels = supported.channels() as usize;
+    let config: cpal::StreamConfig = supported.into();
+
+    let mut phase = 0f32;
+    let stream = device.build_output_stream(
+        &amp;config,
+        move |data: &amp;mut [f32], _: &amp;cpal::OutputCallbackInfo| {
+            for frame in data.chunks_mut(channels) {
+                let sample = (phase * 2.0 * std::f32::consts::PI).sin() * 0.2;
+                phase = (phase + 440.0 / sample_rate) % 1.0;
+                for s in frame.iter_mut() {
+                    *s = sample;
+                }
+            }
+        },
+        |err| eprintln!("stream error: {err}"),
+        None,
+    )?;
+
+    stream.play()?;
+    std::thread::sleep(std::time::Duration::from_secs(3));
+    Ok(())
+}
+</code></pre>
+<p data-paragraph-id="p-15"><span class="rsvp-trigger" data-paragraph-id="p-15" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">W</b>hen <b class="bionic-bold">t</b>he <b class="bionic-bold">dev</b>ice's <b class="bionic-bold">de</b>fault <b class="bionic-bold">fo</b>rmat <b class="bionic-bold">is</b>n't <code>f32</code>, <b class="bionic-bold">ma</b>tch <b class="bionic-bold">o</b>n <code>sample_format()</code> <b class="bionic-bold">a</b>nd <b class="bionic-bold">u</b>se <code>FromSample</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">conv</b>ersion:</p>
+<pre><code class="language-rust">match supported.sample_format() {
+    cpal::SampleFormat::F32 =&gt; build_stream::&lt;f32&gt;(&amp;device, &amp;config),
+    cpal::SampleFormat::I16 =&gt; build_stream::&lt;i16&gt;(&amp;device, &amp;config),
+    cpal::SampleFormat::U16 =&gt; build_stream::&lt;u16&gt;(&amp;device, &amp;config),
+    fmt =&gt; panic!("unsupported format: {fmt}"),
+}
+</code></pre>
+<p data-paragraph-id="p-16"><span class="rsvp-trigger" data-paragraph-id="p-16" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">c</b>pal <b class="bionic-bold">per</b>forms <strong><b class="bionic-bold">n</b>o <b class="bionic-bold">aut</b>omatic <b class="bionic-bold">sa</b>mple <b class="bionic-bold">r</b>ate <b class="bionic-bold">conv</b>ersion <b class="bionic-bold">o</b>r <b class="bionic-bold">fo</b>rmat <b class="bionic-bold">conv</b>ersion</strong> — <b class="bionic-bold">w</b>hat <b class="bionic-bold">y</b>ou <b class="bionic-bold">con</b>figure <b class="bionic-bold">i</b>s <b class="bionic-bold">ex</b>actly <b class="bionic-bold">w</b>hat <b class="bionic-bold">h</b>its <b class="bionic-bold">t</b>he <b class="bionic-bold">har</b>dware. <b class="bionic-bold">T</b>he <code>SampleFormat</code> <b class="bionic-bold">e</b>num <b class="bionic-bold">i</b>n <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7 <b class="bionic-bold">i</b>s <code>#[non_exhaustive]</code> <b class="bionic-bold">a</b>nd <b class="bionic-bold">inc</b>ludes <strong><b class="bionic-bold">I</b>8, <b class="bionic-bold">I</b>16, <b class="bionic-bold">I</b>24, <b class="bionic-bold">I</b>32, <b class="bionic-bold">I</b>64, <b class="bionic-bold">U</b>8, <b class="bionic-bold">U</b>16, <b class="bionic-bold">U</b>24, <b class="bionic-bold">U</b>32, <b class="bionic-bold">U</b>64, <b class="bionic-bold">F</b>32, <b class="bionic-bold">F</b>64</strong>, <b class="bionic-bold">p</b>lus <span class="bionic-acronym">DSD</span> <b class="bionic-bold">var</b>iants. <b class="bionic-bold">T</b>he <b class="bionic-bold">m</b>ost <b class="bionic-bold">co</b>mmon <b class="bionic-bold">ou</b>tput <b class="bionic-bold">fo</b>rmats <b class="bionic-bold">o</b>n <b class="bionic-bold">Li</b>nux <b class="bionic-bold">a</b>re <strong><b class="bionic-bold">F</b>32</strong> <b class="bionic-bold">a</b>nd <strong><b class="bionic-bold">I</b>16</strong>. <b class="bionic-bold">T</b>he <code>Sample</code> <b class="bionic-bold">tr</b>ait (<b class="bionic-bold">f</b>rom <code>dasp_sample</code>) <b class="bionic-bold">pro</b>vides <code>EQUILIBRIUM</code> <b class="bionic-bold">a</b>s <b class="bionic-bold">t</b>he <b class="bionic-bold">si</b>lence <b class="bionic-bold">va</b>lue <b class="bionic-bold">f</b>or <b class="bionic-bold">a</b>ny <b class="bionic-bold">fo</b>rmat.</p>
+<hr>
+<h2><b class="bionic-bold">Thr</b>eading, <b class="bionic-bold">st</b>ate <b class="bionic-bold">sh</b>aring, <b class="bionic-bold">a</b>nd <b class="bionic-bold">t</b>he <b class="bionic-bold">ru</b>les <b class="bionic-bold">o</b>f <b class="bionic-bold">t</b>he <b class="bionic-bold">au</b>dio <b class="bionic-bold">cal</b>lback</h2>
+<p data-paragraph-id="p-17"><strong><span class="rsvp-trigger" data-paragraph-id="p-17" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">au</b>dio <b class="bionic-bold">cal</b>lback <b class="bionic-bold">r</b>uns <b class="bionic-bold">o</b>n <b class="bionic-bold">a</b> <b class="bionic-bold">sep</b>arate, <b class="bionic-bold">high-</b>priority <b class="bionic-bold">th</b>read.</strong> <b class="bionic-bold">O</b>n <b class="bionic-bold">mo</b>dern <b class="bionic-bold">bac</b>kends, <b class="bionic-bold">t</b>he <span class="bionic-acronym">OS</span> <b class="bionic-bold">pro</b>vides <b class="bionic-bold">t</b>his <b class="bionic-bold">th</b>read. <b class="bionic-bold">O</b>n <span class="bionic-acronym">ALSA</span> (<b class="bionic-bold">wh</b>ich <b class="bionic-bold">h</b>as <b class="bionic-bold">a</b> <b class="bionic-bold">blo</b>cking <span class="bionic-acronym">API</span>), <b class="bionic-bold">c</b>pal <b class="bionic-bold">sp</b>awns <b class="bionic-bold">i</b>ts <b class="bionic-bold">o</b>wn <b class="bionic-bold">th</b>read <b class="bionic-bold">p</b>er <b class="bionic-bold">st</b>ream. <b class="bionic-bold">T</b>he <b class="bionic-bold">cal</b>lback <b class="bionic-bold">m</b>ust <b class="bionic-bold">sa</b>tisfy <code>FnMut + Send + 'static</code>.</p>
+<p data-paragraph-id="p-18"><span class="rsvp-trigger" data-paragraph-id="p-18" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">car</b>dinal <b class="bionic-bold">r</b>ule: <strong><b class="bionic-bold">ne</b>ver <b class="bionic-bold">bl</b>ock <b class="bionic-bold">in</b>side <b class="bionic-bold">t</b>he <b class="bionic-bold">au</b>dio <b class="bionic-bold">cal</b>lback</strong>. <b class="bionic-bold">T</b>he <b class="bionic-bold">cal</b>lback <b class="bionic-bold">dea</b>dline <b class="bionic-bold">i</b>s <code>buffer_size / sample_rate</code> <b class="bionic-bold">se</b>conds (<b class="bionic-bold">e</b>.<b class="bionic-bold">g</b>., <b class="bionic-bold">5</b>12 <b class="bionic-bold">fr</b>ames <b class="bionic-bold">a</b>t <b class="bionic-bold">48</b>kHz = ~<b class="bionic-bold">1</b>0.<b class="bionic-bold">7</b>ms). <b class="bionic-bold">Vio</b>lating <b class="bionic-bold">t</b>his <b class="bionic-bold">ca</b>uses <b class="bionic-bold">au</b>dible <b class="bionic-bold">gli</b>tches. <b class="bionic-bold">Spec</b>ifically, <b class="bionic-bold">av</b>oid:</p>
+<ul>
+<li><b class="bionic-bold">Me</b>mory <b class="bionic-bold">allo</b>cations (<code>Vec::push</code>, <code>Box::new</code>, <code>String</code> <b class="bionic-bold">oper</b>ations)</li>
+<li><b class="bionic-bold">Mu</b>tex <b class="bionic-bold">lo</b>cks <b class="bionic-bold">t</b>hat <b class="bionic-bold">co</b>uld <b class="bionic-bold">co</b>ntend <b class="bionic-bold">w</b>ith <b class="bionic-bold">ot</b>her <b class="bionic-bold">th</b>reads</li>
+<li><b class="bionic-bold">F</b>ile <b class="bionic-bold">o</b>r <b class="bionic-bold">ne</b>twork <b class="bionic-bold">I</b>/<b class="bionic-bold">O</b></li>
+<li><code>println!</code> <b class="bionic-bold">o</b>r <b class="bionic-bold">a</b>ny <b class="bionic-bold">lo</b>gging <b class="bionic-bold">t</b>hat <b class="bionic-bold">wr</b>ites <b class="bionic-bold">t</b>o <b class="bionic-bold">st</b>dout/<b class="bionic-bold">st</b>derr</li>
+<li><b class="bionic-bold">Unb</b>ounded <b class="bionic-bold">comp</b>utation</li>
+</ul>
+<p data-paragraph-id="p-19"><span class="rsvp-trigger" data-paragraph-id="p-19" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">F</b>or "<b class="bionic-bold">ro</b>udy", <b class="bionic-bold">y</b>ou <b class="bionic-bold">n</b>eed <b class="bionic-bold">t</b>o <b class="bionic-bold">f</b>eed <b class="bionic-bold">de</b>coded <b class="bionic-bold">au</b>dio <b class="bionic-bold">f</b>rom <b class="bionic-bold">a</b> <b class="bionic-bold">ne</b>twork/<b class="bionic-bold">de</b>code <b class="bionic-bold">th</b>read <b class="bionic-bold">i</b>nto <b class="bionic-bold">t</b>he <b class="bionic-bold">au</b>dio <b class="bionic-bold">cal</b>lback. <b class="bionic-bold">T</b>he <b class="bionic-bold">reco</b>mmended <b class="bionic-bold">pat</b>terns, <b class="bionic-bold">ra</b>nked <b class="bionic-bold">b</b>y <b class="bionic-bold">suit</b>ability:</p>
+<p data-paragraph-id="p-20"><strong><span class="rsvp-trigger" data-paragraph-id="p-20" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Loc</b>k-free <b class="bionic-bold">r</b>ing <b class="bionic-bold">bu</b>ffer (<b class="bionic-bold">b</b>est <b class="bionic-bold">f</b>or <b class="bionic-bold">au</b>dio <b class="bionic-bold">d</b>ata)</strong> — <b class="bionic-bold">T</b>he <code>ringbuf</code> <b class="bionic-bold">cr</b>ate <b class="bionic-bold">pro</b>vides <span class="bionic-acronym">SPSC</span> (<b class="bionic-bold">single</b>-producer, <b class="bionic-bold">single</b>-consumer) <b class="bionic-bold">loc</b>k-free <b class="bionic-bold">qu</b>eues. <b class="bionic-bold">cp</b>al's <b class="bionic-bold">o</b>wn <b class="bionic-bold">exa</b>mples <b class="bionic-bold">u</b>se <b class="bionic-bold">t</b>his:</p>
+<pre><code class="language-rust">use ringbuf::{traits::*, HeapRb};
+
+let rb = HeapRb::&lt;f32&gt;::new(4096 * 4); // generous sizing
+let (mut producer, mut consumer) = rb.split();
+
+// Decode thread pushes samples:
+for sample in decoded_samples {
+    let _ = producer.try_push(sample); // non-blocking, drops if full
+}
+
+// Audio callback pulls samples:
+let stream = device.build_output_stream(&amp;config,
+    move |data: &amp;mut [f32], _: &amp;cpal::OutputCallbackInfo| {
+        for sample in data.iter_mut() {
+            *sample = consumer.try_pop().unwrap_or(0.0); // silence on underrun
+        }
+    },
+    |err| eprintln!("error: {err}"),
+    None,
+)?;
+</code></pre>
+<p data-paragraph-id="p-21"><strong><span class="rsvp-trigger" data-paragraph-id="p-21" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">At</b>omics (<b class="bionic-bold">b</b>est <b class="bionic-bold">f</b>or <b class="bionic-bold">co</b>ntrol <b class="bionic-bold">para</b>meters)</strong> — <b class="bionic-bold">U</b>se <code>AtomicBool</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">pa</b>use <b class="bionic-bold">fl</b>ags <b class="bionic-bold">a</b>nd <code>AtomicU32</code> (<b class="bionic-bold">w</b>ith <code>f32::to_bits</code>/<code>from_bits</code>) <b class="bionic-bold">f</b>or <b class="bionic-bold">vo</b>lume:</p>
+<pre><code class="language-rust">use std::sync::atomic::{AtomicU32, AtomicBool, Ordering};
+use std::sync::Arc;
+
+let volume = Arc::new(AtomicU32::new(f32::to_bits(1.0)));
+let paused = Arc::new(AtomicBool::new(false));
+
+let vol = volume.clone();
+let p = paused.clone();
+// In callback:
+move |data: &amp;mut [f32], _| {
+    let v = f32::from_bits(vol.load(Ordering::Relaxed));
+    if p.load(Ordering::Relaxed) {
+        data.fill(0.0);
+        return;
+    }
+    for sample in data.iter_mut() {
+        *sample = consumer.try_pop().unwrap_or(0.0) * v;
+    }
+}
+</code></pre>
+<p data-paragraph-id="p-22"><span class="rsvp-trigger" data-paragraph-id="p-22" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Av</b>oid <code>Arc&lt;Mutex&lt;&gt;&gt;</code> <b class="bionic-bold">i</b>n <b class="bionic-bold">t</b>he <b class="bionic-bold">ou</b>tput <b class="bionic-bold">cal</b>lback. <b class="bionic-bold">I</b>t's <b class="bionic-bold">acce</b>ptable <b class="bionic-bold">f</b>or <b class="bionic-bold">in</b>put <b class="bionic-bold">rec</b>ording (<b class="bionic-bold">wh</b>ere <b class="bionic-bold">occa</b>sional <b class="bionic-bold">blo</b>cking <b class="bionic-bold">i</b>s <b class="bionic-bold">tol</b>erable) <b class="bionic-bold">b</b>ut <b class="bionic-bold">ri</b>sks <b class="bionic-bold">pri</b>ority <b class="bionic-bold">inv</b>ersion <b class="bionic-bold">o</b>n <b class="bionic-bold">t</b>he <b class="bionic-bold">ou</b>tput <b class="bionic-bold">p</b>ath.</p>
+<hr>
+<h2><b class="bionic-bold">Er</b>ror <b class="bionic-bold">han</b>dling <b class="bionic-bold">a</b>nd <b class="bionic-bold">st</b>ream <b class="bionic-bold">lif</b>ecycle</h2>
+<p data-paragraph-id="p-23"><span class="rsvp-trigger" data-paragraph-id="p-23" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">cp</b>al's <b class="bionic-bold">er</b>ror <b class="bionic-bold">ty</b>pes <b class="bionic-bold">a</b>re <b class="bionic-bold">well-s</b>tructured. <strong><code>BuildStreamError</code></strong> <b class="bionic-bold">h</b>as <b class="bionic-bold">var</b>iants <b class="bionic-bold">f</b>or <code>DeviceNotAvailable</code>, <code>StreamConfigNotSupported</code>, <code>InvalidArgument</code>, <b class="bionic-bold">a</b>nd <code>BackendSpecific</code>. <strong><code>StreamError</code></strong> (<b class="bionic-bold">del</b>ivered <b class="bionic-bold">t</b>o <b class="bionic-bold">t</b>he <b class="bionic-bold">er</b>ror <b class="bionic-bold">cal</b>lback <b class="bionic-bold">a</b>t <b class="bionic-bold">ru</b>ntime) <b class="bionic-bold">inc</b>ludes <code>DeviceNotAvailable</code>, <code>BackendSpecific</code>, <b class="bionic-bold">a</b>nd <b class="bionic-bold">t</b>wo <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7 <b class="bionic-bold">add</b>itions: <strong><code>BufferUnderrun</code></strong> (<span class="bionic-acronym">ALSA</span>, <span class="bionic-acronym">JACK</span>, <b class="bionic-bold">Cor</b>eAudio <b class="bionic-bold">n</b>ow <b class="bionic-bold">re</b>port <b class="bionic-bold">th</b>ese) <b class="bionic-bold">a</b>nd <strong><code>StreamInvalidated</code></strong> (<b class="bionic-bold">st</b>ream <b class="bionic-bold">m</b>ust <b class="bionic-bold">b</b>e <b class="bionic-bold">re</b>built, <b class="bionic-bold">e</b>.<b class="bionic-bold">g</b>., <span class="bionic-acronym">JACK</span> <b class="bionic-bold">se</b>rver <b class="bionic-bold">sa</b>mple <b class="bionic-bold">r</b>ate <b class="bionic-bold">ch</b>ange).</p>
+<p data-paragraph-id="p-24"><span class="rsvp-trigger" data-paragraph-id="p-24" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">O</b>n <b class="bionic-bold">Li</b>nux, <b class="bionic-bold">t</b>he <b class="bionic-bold">m</b>ost <b class="bionic-bold">co</b>mmon <b class="bionic-bold">er</b>rors <b class="bionic-bold">a</b>re:</p>
+<ul>
+<li><strong><code>DeviceBusy</code></strong> — <b class="bionic-bold">Pip</b>eWire <b class="bionic-bold">o</b>r <b class="bionic-bold">Puls</b>eAudio <b class="bionic-bold">ho</b>lds <b class="bionic-bold">t</b>he <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">de</b>fault <b class="bionic-bold">de</b>vice <b class="bionic-bold">excl</b>usively. <b class="bionic-bold">Sol</b>ution: <b class="bionic-bold">u</b>se <b class="bionic-bold">br</b>idge <b class="bionic-bold">de</b>vices <b class="bionic-bold">o</b>r <b class="bionic-bold">na</b>tive <b class="bionic-bold">ba</b>ckend <b class="bionic-bold">fea</b>tures.</li>
+<li><strong><b class="bionic-bold">Bu</b>ffer <b class="bionic-bold">und</b>erruns <b class="bionic-bold">o</b>n <b class="bionic-bold">st</b>ream <b class="bionic-bold">st</b>art</strong> — <b class="bionic-bold">Kn</b>own <b class="bionic-bold">is</b>sue (#<b class="bionic-bold">4</b>60); <b class="bionic-bold">AL</b>SA's <code>PCM.try_recover()</code> <b class="bionic-bold">ha</b>ndles <b class="bionic-bold">rec</b>overy <b class="bionic-bold">autom</b>atically <b class="bionic-bold">i</b>n <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7.</li>
+<li><strong><code>StreamConfigNotSupported</code></strong> — <b class="bionic-bold">Requ</b>esting <b class="bionic-bold">unsu</b>pported <b class="bionic-bold">sa</b>mple <b class="bionic-bold">ra</b>tes <b class="bionic-bold">o</b>r <b class="bionic-bold">bu</b>ffer <b class="bionic-bold">si</b>zes.</li>
+</ul>
+<p data-paragraph-id="p-25"><span class="rsvp-trigger" data-paragraph-id="p-25" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">A</b> <b class="bionic-bold">cri</b>tical <b class="bionic-bold">sub</b>tlety: <strong><code>stream.play()</code> <b class="bionic-bold">a</b>nd <code>stream.pause()</code> <b class="bionic-bold">m</b>ay <b class="bionic-bold">n</b>ot <b class="bionic-bold">re</b>turn <b class="bionic-bold">er</b>rors <b class="bionic-bold">imme</b>diately <b class="bionic-bold">o</b>n <b class="bionic-bold">Li</b>nux/<b class="bionic-bold">Wi</b>ndows</strong>. <b class="bionic-bold">Th</b>ese <b class="bionic-bold">bac</b>kends <b class="bionic-bold">en</b>queue <b class="bionic-bold">com</b>mands; <b class="bionic-bold">er</b>rors <b class="bionic-bold">ar</b>rive <b class="bionic-bold">la</b>ter <b class="bionic-bold">th</b>rough <b class="bionic-bold">t</b>he <b class="bionic-bold">er</b>ror <b class="bionic-bold">cal</b>lback. <b class="bionic-bold">O</b>nly <b class="bionic-bold">ma</b>cOS <b class="bionic-bold">re</b>turns <b class="bionic-bold">er</b>rors <b class="bionic-bold">synch</b>ronously.</p>
+<p data-paragraph-id="p-26"><span class="rsvp-trigger" data-paragraph-id="p-26" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">F</b>or <b class="bionic-bold">st</b>ream <b class="bionic-bold">lif</b>ecycle, <b class="bionic-bold">t</b>he <b class="bionic-bold">ess</b>ential <b class="bionic-bold">pa</b>ttern <b class="bionic-bold">f</b>or "<b class="bionic-bold">ro</b>udy":</p>
+<pre><code class="language-rust">struct AudioPlayer {
+    stream: cpal::Stream,           // MUST be kept alive
+    producer: ringbuf::HeapProd&lt;f32&gt;, // feed samples here
+    volume: Arc&lt;AtomicU32&gt;,
+    paused: Arc&lt;AtomicBool&gt;,
+}
+
+impl AudioPlayer {
+    fn pause(&amp;self)  { self.paused.store(true, Ordering::Relaxed); }
+    fn resume(&amp;self) { self.paused.store(false, Ordering::Relaxed); }
+    fn set_volume(&amp;self, v: f32) {
+        self.volume.store(f32::to_bits(v.clamp(0.0, 1.0)), Ordering::Relaxed);
+    }
+}
+</code></pre>
+<hr>
+<h2><b class="bionic-bold">Bu</b>ffer <b class="bionic-bold">s</b>ize, <b class="bionic-bold">la</b>tency, <b class="bionic-bold">a</b>nd <b class="bionic-bold">Li</b>nux <b class="bionic-bold">ba</b>ckend <b class="bionic-bold">sel</b>ection</h2>
+<p data-paragraph-id="p-27"><span class="rsvp-trigger" data-paragraph-id="p-27" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Bu</b>ffer <b class="bionic-bold">s</b>ize <b class="bionic-bold">dir</b>ectly <b class="bionic-bold">con</b>trols <b class="bionic-bold">la</b>tency. <code>StreamConfig</code> <b class="bionic-bold">ac</b>cepts <b class="bionic-bold">a</b> <code>BufferSize</code> <b class="bionic-bold">e</b>num: <code>Default</code> <b class="bionic-bold">o</b>r <code>Fixed(FrameCount)</code>. <b class="bionic-bold">I</b>n <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7, <strong><code>BufferSize::Default</code> <b class="bionic-bold">ch</b>anged <b class="bionic-bold">beh</b>avior</strong> — <b class="bionic-bold">i</b>t <b class="bionic-bold">n</b>ow <b class="bionic-bold">de</b>fers <b class="bionic-bold">t</b>o <b class="bionic-bold">t</b>he <b class="bionic-bold">de</b>vice/<b class="bionic-bold">h</b>ost <b class="bionic-bold">de</b>fault <b class="bionic-bold">in</b>stead <b class="bionic-bold">o</b>f <b class="bionic-bold">cp</b>al's <b class="bionic-bold">o</b>ld <b class="bionic-bold">opin</b>ionated ~<b class="bionic-bold">10</b>0ms <b class="bionic-bold">de</b>fault. <b class="bionic-bold">O</b>n <span class="bionic-acronym">ALSA</span>, <b class="bionic-bold">t</b>his <b class="bionic-bold">c</b>an <b class="bionic-bold">ra</b>nge <b class="bionic-bold">f</b>rom <b class="bionic-bold">Pipe</b>Wire's <b class="bionic-bold">qu</b>antum (~<b class="bionic-bold">1</b>024 <b class="bionic-bold">fr</b>ames ≈ <b class="bionic-bold">2</b>1ms <b class="bionic-bold">a</b>t <b class="bionic-bold">48</b>kHz) <b class="bionic-bold">t</b>o <code>u32::MAX</code> <b class="bionic-bold">o</b>n <b class="bionic-bold">misco</b>nfigured <b class="bionic-bold">har</b>dware. <strong><b class="bionic-bold">Al</b>ways <b class="bionic-bold">u</b>se <code>BufferSize::Fixed(n)</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">pred</b>ictable <b class="bionic-bold">la</b>tency.</strong> <b class="bionic-bold">Qu</b>ery <b class="bionic-bold">t</b>he <b class="bionic-bold">sup</b>ported <b class="bionic-bold">ra</b>nge <b class="bionic-bold">fi</b>rst:</p>
+<pre><code class="language-rust">if let cpal::SupportedBufferSize::Range { min, max } = supported.buffer_size() {
+    let desired = 512u32.clamp(*min, *max);
+    config.buffer_size = cpal::BufferSize::Fixed(desired);
+}
+</code></pre>
+<p data-paragraph-id="p-28"><span class="rsvp-trigger" data-paragraph-id="p-28" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">A</b>t <strong><b class="bionic-bold">5</b>12 <b class="bionic-bold">fr</b>ames / <b class="bionic-bold">48</b>kHz</strong>, <b class="bionic-bold">t</b>he <b class="bionic-bold">cal</b>lback <b class="bionic-bold">fi</b>res <b class="bionic-bold">ev</b>ery ~<b class="bionic-bold">1</b>0.<b class="bionic-bold">7</b>ms. <b class="bionic-bold">Sm</b>aller <b class="bionic-bold">bu</b>ffers <b class="bionic-bold">m</b>ean <b class="bionic-bold">lo</b>wer <b class="bionic-bold">la</b>tency <b class="bionic-bold">b</b>ut <b class="bionic-bold">hi</b>gher <span class="bionic-acronym">CPU</span> <b class="bionic-bold">l</b>oad <b class="bionic-bold">a</b>nd <b class="bionic-bold">und</b>errun <b class="bionic-bold">r</b>isk. <b class="bionic-bold">F</b>or <b class="bionic-bold">a</b> <b class="bionic-bold">mu</b>sic <b class="bionic-bold">pl</b>ayer (<b class="bionic-bold">n</b>ot <b class="bionic-bold">a</b> <b class="bionic-bold">l</b>ive <b class="bionic-bold">inst</b>rument), <strong><b class="bionic-bold">1</b>024–<b class="bionic-bold">2</b>048 <b class="bionic-bold">fr</b>ames</strong> <b class="bionic-bold">i</b>s <b class="bionic-bold">a</b> <b class="bionic-bold">comf</b>ortable <b class="bionic-bold">sw</b>eet <b class="bionic-bold">s</b>pot.</p>
+<p data-paragraph-id="p-29"><span class="rsvp-trigger" data-paragraph-id="p-29" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">Li</b>nux <b class="bionic-bold">ba</b>ckend <b class="bionic-bold">sit</b>uation <b class="bionic-bold">des</b>erves <b class="bionic-bold">ca</b>reful <b class="bionic-bold">att</b>ention. <b class="bionic-bold">M</b>ost <b class="bionic-bold">mo</b>dern <b class="bionic-bold">Li</b>nux <b class="bionic-bold">des</b>ktops <b class="bionic-bold">r</b>un <strong><b class="bionic-bold">Pip</b>eWire</strong>, <b class="bionic-bold">wh</b>ich <b class="bionic-bold">pro</b>vides <b class="bionic-bold">compa</b>tibility <b class="bionic-bold">la</b>yers <b class="bionic-bold">f</b>or <b class="bionic-bold">b</b>oth <b class="bionic-bold">Puls</b>eAudio <b class="bionic-bold">a</b>nd <span class="bionic-acronym">ALSA</span>. <b class="bionic-bold">W</b>hen <b class="bionic-bold">Pip</b>eWire <b class="bionic-bold">i</b>s <b class="bionic-bold">ru</b>nning, <b class="bionic-bold">i</b>t <b class="bionic-bold">ho</b>lds <b class="bionic-bold">t</b>he <span class="bionic-acronym">ALSA</span> <code>default</code> <b class="bionic-bold">de</b>vice <b class="bionic-bold">excl</b>usively. <b class="bionic-bold">T</b>his <b class="bionic-bold">me</b>ans <b class="bionic-bold">cp</b>al's <b class="bionic-bold">de</b>fault <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">ba</b>ckend <b class="bionic-bold">c</b>an <b class="bionic-bold">f</b>ail <b class="bionic-bold">w</b>ith <code>DeviceBusy</code> <b class="bionic-bold">i</b>f <b class="bionic-bold">an</b>other <b class="bionic-bold">appl</b>ication <b class="bionic-bold">al</b>ready <b class="bionic-bold">h</b>as <b class="bionic-bold">a</b> <b class="bionic-bold">st</b>ream <b class="bionic-bold">o</b>pen. <b class="bionic-bold">Th</b>ree <b class="bionic-bold">sol</b>utions <b class="bionic-bold">ex</b>ist:</p>
+<ol start="1">
+<li><strong><b class="bionic-bold">U</b>se <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">br</b>idge <b class="bionic-bold">de</b>vices</strong> — <b class="bionic-bold">In</b>stead <b class="bionic-bold">o</b>f <code>default</code>, <b class="bionic-bold">co</b>nnect <b class="bionic-bold">t</b>o <b class="bionic-bold">t</b>he <code>pipewire</code> <b class="bionic-bold">o</b>r <code>pulse</code> <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">de</b>vice <b class="bionic-bold">na</b>mes, <b class="bionic-bold">wh</b>ich <b class="bionic-bold">ro</b>ute <b class="bionic-bold">th</b>rough <b class="bionic-bold">t</b>he <b class="bionic-bold">so</b>und <b class="bionic-bold">se</b>rver.</li>
+<li><strong><b class="bionic-bold">U</b>se <b class="bionic-bold">na</b>tive <b class="bionic-bold">Pip</b>eWire/<b class="bionic-bold">Puls</b>eAudio <b class="bionic-bold">fea</b>tures</strong> — <b class="bionic-bold">Co</b>mpile <b class="bionic-bold">w</b>ith <code>--features pipewire</code> <b class="bionic-bold">o</b>r <code>--features pulseaudio</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">di</b>rect <b class="bionic-bold">se</b>rver <b class="bionic-bold">inte</b>gration. <b class="bionic-bold">T</b>his <b class="bionic-bold">i</b>s <b class="bionic-bold">t</b>he <b class="bionic-bold">cle</b>anest <b class="bionic-bold">app</b>roach <b class="bionic-bold">b</b>ut <b class="bionic-bold">th</b>ese <b class="bionic-bold">fea</b>tures <b class="bionic-bold">m</b>ay <b class="bionic-bold">st</b>ill <b class="bionic-bold">b</b>e <b class="bionic-bold">o</b>n <b class="bionic-bold">cp</b>al's <b class="bionic-bold">ma</b>ster <b class="bionic-bold">br</b>anch, <b class="bionic-bold">n</b>ot <b class="bionic-bold">y</b>et <b class="bionic-bold">i</b>n <b class="bionic-bold">a</b> <b class="bionic-bold">re</b>lease.</li>
+<li><strong><b class="bionic-bold">U</b>se <span class="bionic-acronym">JACK</span></strong> — <b class="bionic-bold">Pip</b>eWire <b class="bionic-bold">impl</b>ements <b class="bionic-bold">t</b>he <span class="bionic-acronym">JACK</span> <span class="bionic-acronym">API</span>, <b class="bionic-bold">s</b>o <code>--features jack</code> <b class="bionic-bold">wo</b>rks <b class="bionic-bold">th</b>rough <b class="bionic-bold">Pipe</b>Wire's <span class="bionic-acronym">JACK</span> <b class="bionic-bold">compa</b>tibility <b class="bionic-bold">la</b>yer.</li>
+</ol>
+<p data-paragraph-id="p-30"><span class="rsvp-trigger" data-paragraph-id="p-30" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">F</b>or "<b class="bionic-bold">ro</b>udy", <b class="bionic-bold">t</b>he <b class="bionic-bold">pra</b>gmatic <b class="bionic-bold">ch</b>oice <b class="bionic-bold">to</b>day <b class="bionic-bold">i</b>s: <strong><b class="bionic-bold">ta</b>rget <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">a</b>s <b class="bionic-bold">de</b>fault</strong> (<b class="bionic-bold">i</b>t <b class="bionic-bold">wo</b>rks <b class="bionic-bold">th</b>rough <b class="bionic-bold">Pipe</b>Wire's <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">compa</b>tibility <b class="bionic-bold">o</b>n <b class="bionic-bold">m</b>ost <b class="bionic-bold">sy</b>stems), <b class="bionic-bold">a</b>dd <b class="bionic-bold">t</b>he <code>jack</code> <b class="bionic-bold">fe</b>ature <b class="bionic-bold">a</b>s <b class="bionic-bold">a</b>n <b class="bionic-bold">op</b>tion, <b class="bionic-bold">a</b>nd <b class="bionic-bold">ad</b>opt <b class="bionic-bold">na</b>tive <b class="bionic-bold">Pip</b>eWire/<b class="bionic-bold">Puls</b>eAudio <b class="bionic-bold">fea</b>tures <b class="bionic-bold">o</b>nce <b class="bionic-bold">th</b>ey're <b class="bionic-bold">i</b>n <b class="bionic-bold">a</b> <b class="bionic-bold">st</b>able <b class="bionic-bold">c</b>pal <b class="bionic-bold">re</b>lease. <b class="bionic-bold">Us</b>ers <b class="bionic-bold">m</b>ay <b class="bionic-bold">n</b>eed <b class="bionic-bold">t</b>o <b class="bionic-bold">b</b>e <b class="bionic-bold">i</b>n <b class="bionic-bold">t</b>he <code>audio</code> <b class="bionic-bold">gr</b>oup <b class="bionic-bold">i</b>f <b class="bionic-bold">th</b>eir <b class="bionic-bold">sy</b>stem <b class="bionic-bold">do</b>esn't <b class="bionic-bold">gr</b>ant <b class="bionic-bold">au</b>dio <b class="bionic-bold">ac</b>cess <b class="bionic-bold">v</b>ia <b class="bionic-bold">lo</b>gind.</p>
+<hr>
+<h2><b class="bionic-bold">Dec</b>oding <b class="bionic-bold">Soun</b>dCloud <b class="bionic-bold">st</b>reams: <b class="bionic-bold">Sym</b>phonia + <b class="bionic-bold">c</b>pal, <b class="bionic-bold">n</b>ot <b class="bionic-bold">Ro</b>dio</h2>
+<p data-paragraph-id="p-31"><span class="rsvp-trigger" data-paragraph-id="p-31" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Soun</b>dCloud <strong><b class="bionic-bold">mig</b>rated <b class="bionic-bold">t</b>o <b class="bionic-bold">AAC</b>-based <span class="bionic-acronym">HLS</span> <b class="bionic-bold">st</b>reams</strong> <b class="bionic-bold">i</b>n <b class="bionic-bold">l</b>ate <b class="bionic-bold">2</b>025, <b class="bionic-bold">depr</b>ecating <b class="bionic-bold">M</b>P3 <b class="bionic-bold">prog</b>ressive <b class="bionic-bold">st</b>reams <b class="bionic-bold">a</b>nd <b class="bionic-bold">O</b>pus <span class="bionic-acronym">HLS</span>. <b class="bionic-bold">T</b>he <b class="bionic-bold">cu</b>rrent <b class="bionic-bold">fo</b>rmats <b class="bionic-bold">a</b>re:</p>
+<ul>
+<li><strong><code>hls_aac_160_url</code></strong> — <span class="bionic-acronym">AAC</span> <b class="bionic-bold">16</b>0kbps <b class="bionic-bold">i</b>n <span class="bionic-acronym">HLS</span> (<b class="bionic-bold">pr</b>imary)</li>
+<li><strong><code>hls_aac_96_url</code></strong> — <span class="bionic-acronym">AAC</span> <b class="bionic-bold">96</b>kbps <b class="bionic-bold">i</b>n <span class="bionic-acronym">HLS</span> (<b class="bionic-bold">lo</b>wer <b class="bionic-bold">qu</b>ality)</li>
+<li><strong><code>preview_mp3_128_url</code></strong> — <b class="bionic-bold">30-</b>second <b class="bionic-bold">M</b>P3 <b class="bionic-bold">pr</b>eview <b class="bionic-bold">cl</b>ips</li>
+</ul>
+<p data-paragraph-id="p-32"><span class="rsvp-trigger" data-paragraph-id="p-32" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>his <b class="bionic-bold">me</b>ans <b class="bionic-bold">y</b>our <b class="bionic-bold">de</b>coder <b class="bionic-bold">m</b>ust <b class="bionic-bold">ha</b>ndle <strong><span class="bionic-acronym">AAC</span> <b class="bionic-bold">i</b>n <b class="bionic-bold">MP</b>EG-TS <b class="bionic-bold">o</b>r <b class="bionic-bold">f</b>MP4 <b class="bionic-bold">cont</b>ainers</strong> <b class="bionic-bold">se</b>rved <b class="bionic-bold">v</b>ia <span class="bionic-acronym">HLS</span> <b class="bionic-bold">pla</b>ylists. <b class="bionic-bold">T</b>he <b class="bionic-bold">dec</b>oding <b class="bionic-bold">st</b>ack <b class="bionic-bold">recom</b>mendation:</p>
+<p data-paragraph-id="p-33"><strong><span class="rsvp-trigger" data-paragraph-id="p-33" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Sym</b>phonia</strong> (<b class="bionic-bold">v</b>0.<b class="bionic-bold">5</b>.<b class="bionic-bold">5</b>, <b class="bionic-bold">p</b>ure <b class="bionic-bold">R</b>ust, <b class="bionic-bold">MP</b>L-2.<b class="bionic-bold">0</b>) <b class="bionic-bold">i</b>s <b class="bionic-bold">t</b>he <b class="bionic-bold">ri</b>ght <b class="bionic-bold">ch</b>oice. <b class="bionic-bold">I</b>t <b class="bionic-bold">sup</b>ports <b class="bionic-bold">AA</b>C-LC, <b class="bionic-bold">M</b>P3, <b class="bionic-bold">Vo</b>rbis, <span class="bionic-acronym">FLAC</span>, <b class="bionic-bold">a</b>nd <span class="bionic-acronym">ALAC</span>, <b class="bionic-bold">w</b>ith <b class="bionic-bold">con</b>tainer <b class="bionic-bold">su</b>pport <b class="bionic-bold">f</b>or <span class="bionic-acronym">ISO</span>/<b class="bionic-bold">M</b>P4, <span class="bionic-acronym">OGG</span>, <span class="bionic-acronym">MKV</span>, <b class="bionic-bold">a</b>nd <span class="bionic-acronym">ADTS</span>. <b class="bionic-bold">Crit</b>ically, <b class="bionic-bold">i</b>t <b class="bionic-bold">ha</b>ndles <b class="bionic-bold">non-</b>seekable <b class="bionic-bold">so</b>urces <b class="bionic-bold">v</b>ia <code>ReadOnlySource</code> — <b class="bionic-bold">ess</b>ential <b class="bionic-bold">f</b>or <b class="bionic-bold">ne</b>twork <b class="bionic-bold">st</b>reams. <b class="bionic-bold">I</b>t <b class="bionic-bold">d</b>oes <strong><b class="bionic-bold">n</b>ot</strong> <b class="bionic-bold">su</b>pport <b class="bionic-bold">O</b>pus, <b class="bionic-bold">b</b>ut <b class="bionic-bold">Soun</b>dCloud <b class="bionic-bold">depr</b>ecated <b class="bionic-bold">O</b>pus <b class="bionic-bold">st</b>reams, <b class="bionic-bold">s</b>o <b class="bionic-bold">t</b>his <b class="bionic-bold">g</b>ap <b class="bionic-bold">i</b>s <b class="bionic-bold">irre</b>levant <b class="bionic-bold">f</b>or <b class="bionic-bold">y</b>our <b class="bionic-bold">u</b>se <b class="bionic-bold">c</b>ase.</p>
+<pre><code class="language-toml">symphonia = { version = "0.5.5", features = ["aac", "isomp4", "mp3", "adts"] }
+</code></pre>
+<p data-paragraph-id="p-34"><strong><span class="rsvp-trigger" data-paragraph-id="p-34" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Ro</b>dio</strong> (<b class="bionic-bold">v</b>0.<b class="bionic-bold">2</b>2, <b class="bionic-bold">bu</b>ilt <b class="bionic-bold">o</b>n <b class="bionic-bold">c</b>pal) <b class="bionic-bold">se</b>ems <b class="bionic-bold">tem</b>pting — <b class="bionic-bold">i</b>t <b class="bionic-bold">pro</b>vides <b class="bionic-bold">aut</b>omatic <b class="bionic-bold">sa</b>mple <b class="bionic-bold">r</b>ate <b class="bionic-bold">conv</b>ersion, <b class="bionic-bold">vo</b>lume <b class="bionic-bold">co</b>ntrol, <b class="bionic-bold">a</b>nd <b class="bionic-bold">mi</b>xing. <b class="bionic-bold">B</b>ut <b class="bionic-bold">i</b>t <b class="bionic-bold">h</b>as <b class="bionic-bold">a</b> <b class="bionic-bold">cri</b>tical <b class="bionic-bold">limi</b>tation: <code>Decoder::new()</code> <b class="bionic-bold">req</b>uires <code>Read + Seek</code>, <b class="bionic-bold">a</b>nd <strong><b class="bionic-bold">pa</b>nics <b class="bionic-bold">o</b>n <b class="bionic-bold">non-</b>seekable <b class="bionic-bold">so</b>urces</strong>. <b class="bionic-bold">Si</b>nce <span class="bionic-acronym">HLS</span> <b class="bionic-bold">seg</b>ments <b class="bionic-bold">ar</b>rive <b class="bionic-bold">o</b>ver <span class="bionic-acronym">HTTP</span>, <b class="bionic-bold">yo</b>u'd <b class="bionic-bold">n</b>eed <b class="bionic-bold">t</b>o <b class="bionic-bold">bu</b>ffer <b class="bionic-bold">en</b>tire <b class="bionic-bold">seg</b>ments <b class="bionic-bold">t</b>o <code>Cursor&lt;Vec&lt;u8&gt;&gt;</code> <b class="bionic-bold">be</b>fore <b class="bionic-bold">dec</b>oding, <b class="bionic-bold">lo</b>sing <b class="bionic-bold">Ro</b>dio's <b class="bionic-bold">simp</b>licity <b class="bionic-bold">adv</b>antage. <b class="bionic-bold">Ro</b>dio <b class="bionic-bold">i</b>s <b class="bionic-bold">appr</b>opriate <b class="bionic-bold">f</b>or <b class="bionic-bold">si</b>mple <b class="bionic-bold">f</b>ile <b class="bionic-bold">pla</b>yback <b class="bionic-bold">a</b>pps <b class="bionic-bold">b</b>ut <b class="bionic-bold">n</b>ot <b class="bionic-bold">f</b>or <b class="bionic-bold">a</b> <b class="bionic-bold">str</b>eaming <b class="bionic-bold">pl</b>ayer.</p>
+<p data-paragraph-id="p-35"><span class="rsvp-trigger" data-paragraph-id="p-35" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">Sym</b>phonia <b class="bionic-bold">de</b>code <b class="bionic-bold">l</b>oop <b class="bionic-bold">ext</b>racts <b class="bionic-bold">inte</b>rleaved <span class="bionic-acronym">PCM</span> <b class="bionic-bold">v</b>ia <code>SampleBuffer</code>:</p>
+<pre><code class="language-rust">use symphonia::core::audio::SampleBuffer;
+use symphonia::core::codecs::DecoderOptions;
+use symphonia::core::formats::FormatOptions;
+use symphonia::core::io::{MediaSourceStream, ReadOnlySource};
+use symphonia::core::meta::MetadataOptions;
+use symphonia::core::probe::Hint;
+
+// Wrap an HTTP response body (implements Read)
+let source = ReadOnlySource::new(segment_reader);
+let mss = MediaSourceStream::new(Box::new(source), Default::default());
+
+let mut hint = Hint::new();
+hint.mime_type("audio/aac");
+
+let probed = symphonia::default::get_probe()
+    .format(&amp;hint, mss, &amp;FormatOptions::default(), &amp;MetadataOptions::default())?;
+
+let mut format = probed.format;
+let track = format.tracks().iter()
+    .find(|t| t.codec_params.codec != symphonia::core::codecs::CODEC_TYPE_NULL)
+    .expect("no audio track");
+let track_id = track.id;
+
+let mut decoder = symphonia::default::get_codecs()
+    .make(&amp;track.codec_params, &amp;DecoderOptions::default())?;
+
+let mut sample_buf = None;
+loop {
+    match format.next_packet() {
+        Ok(packet) if packet.track_id() == track_id =&gt; {
+            let decoded = decoder.decode(&amp;packet)?;
+            let buf = sample_buf.get_or_insert_with(|| {
+                SampleBuffer::&lt;f32&gt;::new(decoded.capacity() as u64, *decoded.spec())
+            });
+            buf.copy_interleaved_ref(decoded);
+            // buf.samples() is now &amp;[f32] — interleaved, ready for cpal
+            for &amp;s in buf.samples() {
+                let _ = producer.try_push(s);
+            }
+        }
+        Err(symphonia::core::errors::Error::IoError(ref e))
+            if e.kind() == std::io::ErrorKind::UnexpectedEof =&gt; break,
+        Err(e) =&gt; return Err(e.into()),
+        _ =&gt; continue,
+    }
+}
+</code></pre>
+<p data-paragraph-id="p-36"><strong><span class="rsvp-trigger" data-paragraph-id="p-36" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Sa</b>mple <b class="bionic-bold">r</b>ate <b class="bionic-bold">conv</b>ersion</strong> <b class="bionic-bold">i</b>s <b class="bionic-bold">ess</b>ential — <b class="bionic-bold">Soun</b>dCloud <b class="bionic-bold">au</b>dio <b class="bionic-bold">i</b>s <b class="bionic-bold">typ</b>ically <b class="bionic-bold">44</b>100Hz, <b class="bionic-bold">b</b>ut <b class="bionic-bold">y</b>our <b class="bionic-bold">ou</b>tput <b class="bionic-bold">de</b>vice <b class="bionic-bold">m</b>ay <b class="bionic-bold">de</b>fault <b class="bionic-bold">t</b>o <b class="bionic-bold">48</b>000Hz. <b class="bionic-bold">U</b>se <b class="bionic-bold">t</b>he <strong><b class="bionic-bold">ru</b>bato</strong> <b class="bionic-bold">cr</b>ate (<b class="bionic-bold">p</b>ure <b class="bionic-bold">R</b>ust, <b class="bionic-bold">alloca</b>tion-free <b class="bionic-bold">du</b>ring <b class="bionic-bold">proc</b>essing):</p>
+<pre><code class="language-toml">rubato = "0.17"
+</code></pre>
+<p data-paragraph-id="p-37"><span class="rsvp-trigger" data-paragraph-id="p-37" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Ru</b>bato <b class="bionic-bold">wo</b>rks <b class="bionic-bold">w</b>ith <b class="bionic-bold">non-in</b>terleaved <b class="bionic-bold">ch</b>annel <b class="bionic-bold">ve</b>ctors, <b class="bionic-bold">s</b>o <b class="bionic-bold">yo</b>u'll <b class="bionic-bold">de-in</b>terleave <b class="bionic-bold">Symp</b>honia's <b class="bionic-bold">ou</b>tput, <b class="bionic-bold">res</b>ample, <b class="bionic-bold">t</b>hen <b class="bionic-bold">re-in</b>terleave <b class="bionic-bold">f</b>or <b class="bionic-bold">c</b>pal.</p>
+<hr>
+<h2><b class="bionic-bold">T</b>he <b class="bionic-bold">f</b>ull <b class="bionic-bold">arch</b>itecture <b class="bionic-bold">f</b>or <b class="bionic-bold">ro</b>udy</h2>
+<p data-paragraph-id="p-38"><span class="rsvp-trigger" data-paragraph-id="p-38" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">reco</b>mmended <b class="bionic-bold">th</b>read <b class="bionic-bold">arch</b>itecture <b class="bionic-bold">f</b>or <b class="bionic-bold">a</b> <span class="bionic-acronym">TUI</span> <b class="bionic-bold">Soun</b>dCloud <b class="bionic-bold">pl</b>ayer:</p>
+<pre><code> ┌──────────┐    ┌───────────────┐    ┌──────────────┐    ┌──────────┐
+ │ Network  │───→│ Decode/Resamp │───→│  Ring Buffer  │───→│  cpal    │
+ │ (tokio)  │    │ (Symphonia +  │    │  (ringbuf)    │    │ callback │
+ │ HLS fetch│    │  rubato)      │    │               │    │ thread   │
+ └──────────┘    └───────────────┘    └──────────────┘    └──────────┘
+       ↑                                                        ↑
+       │              ┌──────────────┐                          │
+       └──────────────│  UI thread   │──── atomics/commands ────┘
+                      │  (ratatui)   │
+                      └──────────────┘
+</code></pre>
+<p data-paragraph-id="p-39"><strong><span class="rsvp-trigger" data-paragraph-id="p-39" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Ne</b>twork <b class="bionic-bold">th</b>read</strong> (<b class="bionic-bold">as</b>ync, <b class="bionic-bold">to</b>kio + <b class="bionic-bold">re</b>qwest): <b class="bionic-bold">Fe</b>tches <b class="bionic-bold">t</b>he <span class="bionic-acronym">HLS</span> <b class="bionic-bold">M</b>3U8 <b class="bionic-bold">pla</b>ylist <b class="bionic-bold">f</b>rom <b class="bionic-bold">Soun</b>dCloud's <code>/tracks/{id}/streams</code> <b class="bionic-bold">end</b>point, <b class="bionic-bold">pa</b>rses <b class="bionic-bold">i</b>t <b class="bionic-bold">w</b>ith <code>m3u8-rs</code>, <b class="bionic-bold">a</b>nd <b class="bionic-bold">dow</b>nloads <b class="bionic-bold">seg</b>ments <b class="bionic-bold">sequ</b>entially. <b class="bionic-bold">St</b>ream <b class="bionic-bold">U</b>RLs <b class="bionic-bold">in</b>clude <b class="bionic-bold">Clou</b>dFront <b class="bionic-bold">si</b>gned <b class="bionic-bold">para</b>meters <b class="bionic-bold">w</b>ith <strong><b class="bionic-bold">sh</b>ort <b class="bionic-bold">ex</b>piry <b class="bionic-bold">ti</b>mes</strong> — <b class="bionic-bold">imp</b>lement <b class="bionic-bold">pro</b>active <b class="bionic-bold">re-f</b>etching.</p>
+<p data-paragraph-id="p-40"><strong><span class="rsvp-trigger" data-paragraph-id="p-40" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">De</b>code <b class="bionic-bold">th</b>read</strong>: <b class="bionic-bold">Rec</b>eives <b class="bionic-bold">se</b>gment <b class="bionic-bold">d</b>ata, <b class="bionic-bold">de</b>codes <b class="bionic-bold">w</b>ith <b class="bionic-bold">Sym</b>phonia, <b class="bionic-bold">res</b>amples <b class="bionic-bold">w</b>ith <b class="bionic-bold">ru</b>bato <b class="bionic-bold">i</b>f <b class="bionic-bold">ne</b>eded, <b class="bionic-bold">a</b>nd <b class="bionic-bold">pu</b>shes <b class="bionic-bold">inte</b>rleaved <b class="bionic-bold">f</b>32 <span class="bionic-acronym">PCM</span> <b class="bionic-bold">i</b>nto <b class="bionic-bold">t</b>he <b class="bionic-bold">r</b>ing <b class="bionic-bold">bu</b>ffer. <b class="bionic-bold">Pre-</b>buffer <strong><b class="bionic-bold">2</b>–<b class="bionic-bold">3</b> <b class="bionic-bold">seg</b>ments</strong> <b class="bionic-bold">be</b>fore <b class="bionic-bold">sta</b>rting <b class="bionic-bold">pla</b>yback.</p>
+<p data-paragraph-id="p-41"><strong><span class="rsvp-trigger" data-paragraph-id="p-41" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">Au</b>dio <b class="bionic-bold">cal</b>lback <b class="bionic-bold">th</b>read</strong> (<b class="bionic-bold">ma</b>naged <b class="bionic-bold">b</b>y <b class="bionic-bold">c</b>pal): <b class="bionic-bold">Pu</b>lls <b class="bionic-bold">sa</b>mples <b class="bionic-bold">f</b>rom <b class="bionic-bold">t</b>he <b class="bionic-bold">r</b>ing <b class="bionic-bold">bu</b>ffer. <b class="bionic-bold">Fa</b>lls <b class="bionic-bold">b</b>ack <b class="bionic-bold">t</b>o <b class="bionic-bold">si</b>lence (<b class="bionic-bold">0</b>.<b class="bionic-bold">0</b>) <b class="bionic-bold">o</b>n <b class="bionic-bold">und</b>errun. <b class="bionic-bold">Ap</b>plies <b class="bionic-bold">vo</b>lume <b class="bionic-bold">sc</b>aling <b class="bionic-bold">v</b>ia <b class="bionic-bold">at</b>omic.</p>
+<p data-paragraph-id="p-42"><strong><span class="rsvp-trigger" data-paragraph-id="p-42" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><span class="bionic-acronym">UI</span> <b class="bionic-bold">th</b>read</strong> (<b class="bionic-bold">m</b>ain, <b class="bionic-bold">ra</b>tatui + <b class="bionic-bold">cro</b>ssterm): <b class="bionic-bold">Re</b>nders <b class="bionic-bold">t</b>he <span class="bionic-acronym">TUI</span>, <b class="bionic-bold">ha</b>ndles <b class="bionic-bold">key</b>board <b class="bionic-bold">in</b>put, <b class="bionic-bold">se</b>nds <b class="bionic-bold">com</b>mands (<b class="bionic-bold">p</b>lay/<b class="bionic-bold">pa</b>use/<b class="bionic-bold">s</b>eek/<b class="bionic-bold">vo</b>lume) <b class="bionic-bold">v</b>ia <b class="bionic-bold">at</b>omics <b class="bionic-bold">a</b>nd <b class="bionic-bold">cha</b>nnels.</p>
+<p data-paragraph-id="p-43"><span class="rsvp-trigger" data-paragraph-id="p-43" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">F</b>or <strong><b class="bionic-bold">se</b>eking <b class="bionic-bold">i</b>n <span class="bionic-acronym">HLS</span></strong>, <b class="bionic-bold">cal</b>culate <b class="bionic-bold">wh</b>ich <b class="bionic-bold">se</b>gment <b class="bionic-bold">con</b>tains <b class="bionic-bold">t</b>he <b class="bionic-bold">ta</b>rget <b class="bionic-bold">tim</b>estamp <b class="bionic-bold">us</b>ing <code>#EXTINF</code> <b class="bionic-bold">dur</b>ations <b class="bionic-bold">f</b>rom <b class="bionic-bold">t</b>he <b class="bionic-bold">pla</b>ylist, <b class="bionic-bold">s</b>kip <b class="bionic-bold">t</b>o <b class="bionic-bold">t</b>hat <b class="bionic-bold">se</b>gment, <b class="bionic-bold">a</b>nd <b class="bionic-bold">u</b>se <b class="bionic-bold">Symp</b>honia's <code>format.seek()</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">intra</b>-segment <b class="bionic-bold">posi</b>tioning. <b class="bionic-bold">F</b>or <strong><b class="bionic-bold">ga</b>pless <b class="bionic-bold">pla</b>yback</strong> <b class="bionic-bold">be</b>tween <b class="bionic-bold">seg</b>ments, <b class="bionic-bold">en</b>able <code>FormatOptions::enable_gapless = true</code> <b class="bionic-bold">a</b>nd <b class="bionic-bold">k</b>eep <b class="bionic-bold">t</b>he <b class="bionic-bold">de</b>coder <b class="bionic-bold">al</b>ive <b class="bionic-bold">ac</b>ross <b class="bionic-bold">se</b>gment <b class="bionic-bold">boun</b>daries <b class="bionic-bold">w</b>hen <b class="bionic-bold">t</b>he <b class="bionic-bold">co</b>dec <b class="bionic-bold">para</b>meters <b class="bionic-bold">ma</b>tch.</p>
+<p data-paragraph-id="p-44"><span class="rsvp-trigger" data-paragraph-id="p-44" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">reco</b>mmended <code>Cargo.toml</code> <b class="bionic-bold">f</b>or <b class="bionic-bold">t</b>he <b class="bionic-bold">f</b>ull <b class="bionic-bold">st</b>ack:</p>
+<pre><code class="language-toml">[dependencies]
+cpal = "0.17"
+symphonia = { version = "0.5.5", features = ["aac", "isomp4", "mp3", "adts"] }
+rubato = "0.17"
+m3u8-rs = "6"
+ringbuf = "0.4"
+reqwest = { version = "0.12", features = ["stream"] }
+tokio = { version = "1", features = ["full"] }
+ratatui = "0.29"
+crossterm = "0.28"
+anyhow = "1"
+</code></pre>
+<hr>
+<h2><b class="bionic-bold">Ve</b>rsion <b class="bionic-bold">hi</b>story <b class="bionic-bold">a</b>nd <b class="bionic-bold">mig</b>ration <b class="bionic-bold">no</b>tes</h2>
+<p data-paragraph-id="p-45"><span class="rsvp-trigger" data-paragraph-id="p-45" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">c</b>pal <strong><b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7.<b class="bionic-bold">3</b></strong> (<b class="bionic-bold">Feb</b>ruary <b class="bionic-bold">1</b>8, <b class="bionic-bold">2</b>026) <b class="bionic-bold">i</b>s <b class="bionic-bold">cu</b>rrent. <b class="bionic-bold">T</b>he <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>6 → <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7 <b class="bionic-bold">mig</b>ration <b class="bionic-bold">intr</b>oduced <b class="bionic-bold">se</b>veral <b class="bionic-bold">bre</b>aking <b class="bionic-bold">ch</b>anges <b class="bionic-bold">wo</b>rth <b class="bionic-bold">no</b>ting:</p>
+<p data-paragraph-id="p-46"><strong><code>SampleRate</code><span class="rsvp-trigger" data-paragraph-id="p-46" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span> <b class="bionic-bold">ch</b>anged <b class="bionic-bold">f</b>rom <b class="bionic-bold">a</b> <b class="bionic-bold">ne</b>wtype <b class="bionic-bold">st</b>ruct <b class="bionic-bold">t</b>o <b class="bionic-bold">a</b> <b class="bionic-bold">pl</b>ain <code>u32</code> <b class="bionic-bold">t</b>ype <b class="bionic-bold">al</b>ias.</strong> <b class="bionic-bold">C</b>ode <b class="bionic-bold">us</b>ing <code>SampleRate(44100)</code> <b class="bionic-bold">m</b>ust <b class="bionic-bold">ch</b>ange <b class="bionic-bold">t</b>o <b class="bionic-bold">j</b>ust <code>44100</code>. <strong><code>Device::name()</code> <b class="bionic-bold">i</b>s <b class="bionic-bold">depr</b>ecated</strong> <b class="bionic-bold">i</b>n <b class="bionic-bold">fa</b>vor <b class="bionic-bold">o</b>f <code>id()</code> (<b class="bionic-bold">st</b>able, <b class="bionic-bold">pers</b>istable) <b class="bionic-bold">a</b>nd <code>description()</code> (<b class="bionic-bold">human</b>-readable). <strong><code>BufferSize::Default</code> <b class="bionic-bold">beh</b>avior <b class="bionic-bold">ch</b>anged</strong> <b class="bionic-bold">t</b>o <b class="bionic-bold">de</b>fer <b class="bionic-bold">t</b>o <b class="bionic-bold">h</b>ost/<b class="bionic-bold">de</b>vice <b class="bionic-bold">def</b>aults <b class="bionic-bold">ra</b>ther <b class="bionic-bold">t</b>han <b class="bionic-bold">cp</b>al's <b class="bionic-bold">opin</b>ionated <b class="bionic-bold">va</b>lues — <b class="bionic-bold">i</b>f <b class="bionic-bold">y</b>ou <b class="bionic-bold">re</b>lied <b class="bionic-bold">o</b>n <b class="bionic-bold">t</b>he <b class="bionic-bold">o</b>ld <b class="bionic-bold">beh</b>avior, <b class="bionic-bold">sw</b>itch <b class="bionic-bold">t</b>o <code>BufferSize::Fixed(n)</code>. <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">de</b>vice <b class="bionic-bold">enum</b>eration <b class="bionic-bold">n</b>ow <b class="bionic-bold">re</b>turns <b class="bionic-bold">a</b>ll <code>aplay -L</code> <b class="bionic-bold">de</b>vices (<b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>6 <b class="bionic-bold">h</b>ad <b class="bionic-bold">a</b> <b class="bionic-bold">regr</b>ession <b class="bionic-bold">ret</b>urning <b class="bionic-bold">o</b>nly <b class="bionic-bold">c</b>ard <b class="bionic-bold">na</b>mes). <span class="bionic-acronym">ALSA</span> <b class="bionic-bold">u</b>ses <code>set_buffer_size_near()</code> <b class="bionic-bold">in</b>stead <b class="bionic-bold">o</b>f <b class="bionic-bold">ex</b>act <code>set_buffer_size()</code>, <b class="bionic-bold">imp</b>roving <b class="bionic-bold">har</b>dware <b class="bionic-bold">compa</b>tibility.</p>
+<p data-paragraph-id="p-47"><span class="rsvp-trigger" data-paragraph-id="p-47" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">T</b>he <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>3 <b class="bionic-bold">re</b>lease (<b class="bionic-bold">2</b>020) <b class="bionic-bold">w</b>as <b class="bionic-bold">t</b>he <b class="bionic-bold">la</b>rgest <b class="bionic-bold">archi</b>tectural <b class="bionic-bold">sh</b>ift, <b class="bionic-bold">rem</b>oving <b class="bionic-bold">t</b>he <b class="bionic-bold">blo</b>cking <code>EventLoop</code> <span class="bionic-acronym">API</span> <b class="bionic-bold">ent</b>irely <b class="bionic-bold">i</b>n <b class="bionic-bold">fa</b>vor <b class="bionic-bold">o</b>f <b class="bionic-bold">t</b>he <b class="bionic-bold">cu</b>rrent <b class="bionic-bold">cal</b>lback <b class="bionic-bold">mo</b>del. <b class="bionic-bold">A</b>ny <b class="bionic-bold">pr</b>e-0.<b class="bionic-bold">1</b>3 <b class="bionic-bold">exa</b>mples <b class="bionic-bold">o</b>r <b class="bionic-bold">tut</b>orials <b class="bionic-bold">a</b>re <b class="bionic-bold">funda</b>mentally <b class="bionic-bold">inco</b>mpatible <b class="bionic-bold">w</b>ith <b class="bionic-bold">t</b>he <b class="bionic-bold">mo</b>dern <span class="bionic-acronym">API</span>.</p>
+<h2><b class="bionic-bold">Conc</b>lusion</h2>
+<p data-paragraph-id="p-48"><span class="rsvp-trigger" data-paragraph-id="p-48" role="button" tabindex="0" aria-label="Open RSVP reader for this paragraph"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg></span><b class="bionic-bold">F</b>or "<b class="bionic-bold">ro</b>udy", <b class="bionic-bold">t</b>he <b class="bionic-bold">arch</b>itecture <b class="bionic-bold">i</b>s <b class="bionic-bold">cl</b>ear: <strong><b class="bionic-bold">c</b>pal <b class="bionic-bold">v</b>0.<b class="bionic-bold">1</b>7 + <b class="bionic-bold">Sym</b>phonia + <b class="bionic-bold">ru</b>bato + <b class="bionic-bold">ri</b>ngbuf</strong> <b class="bionic-bold">gi</b>ves <b class="bionic-bold">y</b>ou <b class="bionic-bold">f</b>ull <b class="bionic-bold">co</b>ntrol <b class="bionic-bold">o</b>ver <b class="bionic-bold">t</b>he <b class="bionic-bold">decode</b>-to-output <b class="bionic-bold">pip</b>eline <b class="bionic-bold">t</b>hat <b class="bionic-bold">a</b> <b class="bionic-bold">str</b>eaming <b class="bionic-bold">mu</b>sic <b class="bionic-bold">pl</b>ayer <b class="bionic-bold">de</b>mands. <b class="bionic-bold">Ro</b>dio's <b class="bionic-bold">conv</b>enience <b class="bionic-bold">is</b>n't <b class="bionic-bold">wo</b>rth <b class="bionic-bold">i</b>ts <b class="bionic-bold">str</b>eaming <b class="bionic-bold">limi</b>tations. <b class="bionic-bold">T</b>he <b class="bionic-bold">m</b>ost <b class="bionic-bold">imp</b>actful <b class="bionic-bold">dec</b>isions <b class="bionic-bold">yo</b>u'll <b class="bionic-bold">m</b>ake <b class="bionic-bold">a</b>re: <b class="bionic-bold">si</b>zing <b class="bionic-bold">y</b>our <b class="bionic-bold">r</b>ing <b class="bionic-bold">bu</b>ffer <b class="bionic-bold">gene</b>rously (<b class="bionic-bold">4</b>× <b class="bionic-bold">t</b>he <b class="bionic-bold">exp</b>ected <b class="bionic-bold">cal</b>lback <b class="bionic-bold">bu</b>ffer), <b class="bionic-bold">us</b>ing <code>BufferSize::Fixed</code> <b class="bionic-bold">ra</b>ther <b class="bionic-bold">t</b>han <code>Default</code> <b class="bionic-bold">o</b>n <b class="bionic-bold">Li</b>nux, <b class="bionic-bold">a</b>nd <b class="bionic-bold">han</b>dling <b class="bionic-bold">Soun</b>dCloud's <span class="bionic-acronym">URL</span> <b class="bionic-bold">expi</b>ration <b class="bionic-bold">grac</b>efully. <b class="bionic-bold">T</b>he <code>termusic</code> <b class="bionic-bold">pr</b>oject (<b class="bionic-bold">a</b> <b class="bionic-bold">prod</b>uction <b class="bionic-bold">R</b>ust <span class="bionic-acronym">TUI</span> <b class="bionic-bold">mu</b>sic <b class="bionic-bold">pl</b>ayer <b class="bionic-bold">us</b>ing <b class="bionic-bold">Sym</b>phonia + <b class="bionic-bold">c</b>pal) <b class="bionic-bold">i</b>s <b class="bionic-bold">wo</b>rth <b class="bionic-bold">stu</b>dying <b class="bionic-bold">a</b>s <b class="bionic-bold">a</b>n <b class="bionic-bold">archi</b>tectural <b class="bionic-bold">ref</b>erence. <b class="bionic-bold">St</b>art <b class="bionic-bold">w</b>ith <b class="bionic-bold">t</b>he <b class="bionic-bold">sin</b>e-wave <b class="bionic-bold">ex</b>ample <b class="bionic-bold">t</b>o <b class="bionic-bold">ve</b>rify <b class="bionic-bold">y</b>our <b class="bionic-bold">au</b>dio <b class="bionic-bold">st</b>ack <b class="bionic-bold">wo</b>rks, <b class="bionic-bold">t</b>hen <b class="bionic-bold">la</b>yer <b class="bionic-bold">i</b>n <b class="bionic-bold">Sym</b>phonia <b class="bionic-bold">dec</b>oding <b class="bionic-bold">segment</b>-by-segment — <b class="bionic-bold">t</b>he <b class="bionic-bold">comp</b>lexity <b class="bionic-bold">i</b>s <b class="bionic-bold">mana</b>geable <b class="bionic-bold">w</b>hen <b class="bionic-bold">e</b>ach <b class="bionic-bold">la</b>yer <b class="bionic-bold">i</b>s <b class="bionic-bold">te</b>sted <b class="bionic-bold">indep</b>endently.</p>
+
+  </article>
+
+  <div id="rsvp-modal" class="rsvp-modal hidden" role="dialog" aria-modal="true" aria-labelledby="rsvp-title">
+    <div class="rsvp-container">
+      <h2 id="rsvp-title" class="visually-hidden">RSVP Speed Reader</h2>
+      <div class="rsvp-display" role="region" aria-label="Word display">
+        <span class="rsvp-prev" aria-hidden="true"></span>
+        <span class="rsvp-current" aria-live="polite" aria-atomic="true"></span>
+        <span class="rsvp-next" aria-hidden="true"></span>
+      </div>
+      <div class="rsvp-progress-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div class="rsvp-progress-fill"></div>
+      </div>
+      <div class="rsvp-controls" role="toolbar" aria-label="Playback controls">
+        <button class="rsvp-btn" data-action="reset" aria-label="Reset to beginning" title="Reset (R)">↺</button>
+        <button class="rsvp-btn" data-action="play" aria-label="Play" title="Play/Pause (Space)">▶</button>
+        <select class="rsvp-speed" aria-label="Reading speed" title="Speed (↑/↓)">
+          <option value="200">200 WPM</option>
+          <option value="300">300 WPM</option>
+          <option value="400">400 WPM</option>
+          <option value="500" selected>500 WPM</option>
+          <option value="600">600 WPM</option>
+          <option value="700">700 WPM</option>
+          <option value="800">800 WPM</option>
+        </select>
+        <button class="rsvp-btn" data-action="close" aria-label="Close reader" title="Close (Esc)">✕</button>
+      </div>
+      <div class="rsvp-progress" aria-live="off"></div>
+      <div class="rsvp-hints" aria-hidden="true">
+        <kbd>Space</kbd> play/pause · <kbd>R</kbd> reset · <kbd>←</kbd><kbd>→</kbd> step · <kbd>↑</kbd><kbd>↓</kbd> speed · <kbd>Esc</kbd> close
+      </div>
+    </div>
+  </div>
+  <style>.visually-hidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0;}</style>
+
+  <script>
+
+class RSVPReader {
+  constructor() {
+    this.modal = document.getElementById('rsvp-modal');
+    this.display = this.modal.querySelector('.rsvp-display');
+    this.prevEl = this.modal.querySelector('.rsvp-prev');
+    this.currentEl = this.modal.querySelector('.rsvp-current');
+    this.nextEl = this.modal.querySelector('.rsvp-next');
+    this.speedSelect = this.modal.querySelector('.rsvp-speed');
+    this.progressEl = this.modal.querySelector('.rsvp-progress');
+    this.progressFill = this.modal.querySelector('.rsvp-progress-fill');
+    this.playBtn = this.modal.querySelector('[data-action="play"]');
+    this.resetBtn = this.modal.querySelector('[data-action="reset"]');
+    this.closeBtn = this.modal.querySelector('[data-action="close"]');
+
+    this.words = [];
+    this.index = 0;
+    this.playing = false;
+    this.intervalId = null;
+    this.animationFrame = null;
+    this.lastTrigger = null;
+
+    this.bindEvents();
+    this.setupAccessibility();
+  }
+
+  bindEvents() {
+    // RSVP trigger buttons
+    document.querySelectorAll('.rsvp-trigger').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const paragraphId = e.currentTarget.dataset.paragraphId;
+        this.lastTrigger = e.currentTarget;
+        this.open(paragraphId);
+      });
+
+      // Also handle Enter/Space on trigger buttons
+      btn.addEventListener('keydown', (e) => {
+        if (e.code === 'Enter' || e.code === 'Space') {
+          e.preventDefault();
+          const paragraphId = e.currentTarget.dataset.paragraphId;
+          this.lastTrigger = e.currentTarget;
+          this.open(paragraphId);
+        }
+      });
+    });
+
+    // Modal controls
+    this.playBtn.addEventListener('click', () => this.toggle());
+    this.resetBtn.addEventListener('click', () => this.reset());
+    this.closeBtn.addEventListener('click', () => this.close());
+    this.speedSelect.addEventListener('change', () => this.updateSpeed());
+
+    // Click outside to close
+    this.modal.addEventListener('click', (e) => {
+      if (e.target === this.modal) {
+        this.close();
+      }
+    });
+
+    // Keyboard shortcuts (global)
+    document.addEventListener('keydown', (e) => this.handleKeydown(e));
+  }
+
+  setupAccessibility() {
+    // Trap focus within modal when open
+    this.modal.addEventListener('keydown', (e) => {
+      if (e.code !== 'Tab') return;
+
+      const focusable = this.modal.querySelectorAll(
+        'button:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      );
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    });
+  }
+
+  handleKeydown(e) {
+    // Ignore if modal is hidden
+    if (!this.modal.classList.contains('visible')) return;
+
+    // Ignore if typing in an input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.code) {
+      case 'Space':
+        e.preventDefault();
+        this.toggle();
+        break;
+      case 'KeyR':
+        if (!e.metaKey && !e.ctrlKey) {
+          e.preventDefault();
+          this.reset();
+        }
+        break;
+      case 'Escape':
+        e.preventDefault();
+        this.close();
+        break;
+      case 'ArrowLeft':
+        e.preventDefault();
+        this.stepBack();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        this.stepForward();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        this.increaseSpeed();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        this.decreaseSpeed();
+        break;
+      case 'Home':
+        e.preventDefault();
+        this.goToStart();
+        break;
+      case 'End':
+        e.preventDefault();
+        this.goToEnd();
+        break;
+    }
+  }
+
+  open(paragraphId) {
+    const p = document.querySelector(`[data-paragraph-id="${paragraphId}"]`);
+    if (!p) return;
+
+    this.words = this.tokenize(p.textContent);
+    if (this.words.length === 0) return;
+
+    this.index = 0;
+    this.updateDisplayState();
+    this.render();
+
+    // Show modal with animation
+    this.modal.classList.remove('hidden');
+    // Force reflow for animation
+    void this.modal.offsetWidth;
+    this.modal.classList.add('visible');
+
+    // Focus the play button for keyboard navigation
+    requestAnimationFrame(() => this.playBtn.focus());
+
+    // Announce to screen readers
+    this.currentEl.setAttribute('aria-live', 'polite');
+  }
+
+  close() {
+    this.pause();
+
+    // Hide with animation
+    this.modal.classList.remove('visible');
+
+    // Wait for animation to complete
+    setTimeout(() => {
+      this.modal.classList.add('hidden');
+      // Return focus to trigger button
+      if (this.lastTrigger) {
+        this.lastTrigger.focus();
+      }
+    }, 200);
+  }
+
+  tokenize(text) {
+    // Split on whitespace, filter empty entries
+    return text.split(/\s+/).filter(w => w.length > 0);
+  }
+
+  get wpm() {
+    return parseInt(this.speedSelect.value, 10);
+  }
+
+  get interval() {
+    return 60000 / this.wpm;
+  }
+
+  get progress() {
+    if (this.words.length <= 1) return 100;
+    return Math.round((this.index / (this.words.length - 1)) * 100);
+  }
+
+  updateDisplayState() {
+    // Update CSS classes for edge cases
+    this.display.classList.toggle('at-start', this.index === 0);
+    this.display.classList.toggle('at-end', this.index >= this.words.length - 1);
+    this.display.classList.toggle('single-word', this.words.length === 1);
+    this.display.classList.toggle('completed', this.index >= this.words.length - 1 && !this.playing);
+  }
+
+  render() {
+    // Trigger animation
+    this.display.classList.add('animating');
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        this.display.classList.remove('animating');
+      });
+    });
+
+    // Update words
+    this.prevEl.textContent = this.words[this.index - 1] || '';
+    this.currentEl.textContent = this.words[this.index] || '';
+    this.nextEl.textContent = this.words[this.index + 1] || '';
+
+    // Update progress
+    if (this.progressEl) {
+      this.progressEl.textContent = `${this.index + 1} / ${this.words.length}`;
+    }
+
+    if (this.progressFill) {
+      this.progressFill.style.width = `${this.progress}%`;
+    }
+
+    this.updateDisplayState();
+  }
+
+  play() {
+    if (this.playing) return;
+
+    // If at end, restart
+    if (this.index >= this.words.length - 1) {
+      this.index = 0;
+      this.render();
+    }
+
+    this.playing = true;
+    this.updatePlayButton();
+
+    // Use more precise timing
+    const tick = () => {
+      if (!this.playing) return;
+
+      this.advance();
+
+      if (this.index < this.words.length - 1) {
+        this.intervalId = setTimeout(tick, this.interval);
+      }
+    };
+
+    this.intervalId = setTimeout(tick, this.interval);
+  }
+
+  pause() {
+    this.playing = false;
+    this.updatePlayButton();
+    if (this.intervalId) {
+      clearTimeout(this.intervalId);
+      this.intervalId = null;
+    }
+    this.updateDisplayState();
+  }
+
+  toggle() {
+    this.playing ? this.pause() : this.play();
+  }
+
+  reset() {
+    this.pause();
+    this.index = 0;
+    this.render();
+    this.playBtn.focus();
+  }
+
+  advance() {
+    if (this.index >= this.words.length - 1) {
+      this.pause();
+      return;
+    }
+    this.index++;
+    this.render();
+  }
+
+  stepBack() {
+    this.pause();
+    if (this.index > 0) {
+      this.index--;
+      this.render();
+    }
+  }
+
+  stepForward() {
+    this.pause();
+    if (this.index < this.words.length - 1) {
+      this.index++;
+      this.render();
+    }
+  }
+
+  goToStart() {
+    this.pause();
+    this.index = 0;
+    this.render();
+  }
+
+  goToEnd() {
+    this.pause();
+    this.index = this.words.length - 1;
+    this.render();
+  }
+
+  increaseSpeed() {
+    const options = Array.from(this.speedSelect.options);
+    const currentIndex = options.findIndex(opt => opt.selected);
+    if (currentIndex < options.length - 1) {
+      this.speedSelect.selectedIndex = currentIndex + 1;
+      this.updateSpeed();
+    }
+  }
+
+  decreaseSpeed() {
+    const options = Array.from(this.speedSelect.options);
+    const currentIndex = options.findIndex(opt => opt.selected);
+    if (currentIndex > 0) {
+      this.speedSelect.selectedIndex = currentIndex - 1;
+      this.updateSpeed();
+    }
+  }
+
+  updateSpeed() {
+    if (this.playing) {
+      this.pause();
+      this.play();
+    }
+  }
+
+  updatePlayButton() {
+    this.playBtn.textContent = this.playing ? '⏸' : '▶';
+    this.playBtn.setAttribute('aria-label', this.playing ? 'Pause' : 'Play');
+    this.playBtn.classList.toggle('playing', this.playing);
+  }
+}
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  // Only initialize if there are RSVP triggers
+  if (document.querySelector('.rsvp-trigger')) {
+    new RSVPReader();
+  }
+});
+
+  </script>
+</body>
+</html>

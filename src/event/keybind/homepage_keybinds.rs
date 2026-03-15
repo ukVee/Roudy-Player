@@ -1,22 +1,96 @@
 use ratatui::crossterm::event::{KeyCode, KeyEvent};
 use tokio::sync::mpsc::Sender;
 
-use crate::{api::request_handler::ClientEvent, global_state::{ApiData, Roudy, RoudyMessage}};
+use crate::{
+    api::request_handler::ClientEvent,
+    global_state::{ApiData, Roudy, RoudyMessage},
+};
 
 
 
+pub async fn listen_for_homepage_binds(
+    key: KeyEvent,
+    req_api_data: &Option<Sender<ClientEvent>>,
+    global_state: &mut Roudy,
+    api_data: &mut ApiData,
+) {
+    match global_state.homepage_subpage {
+        0 => {
+            if key.code == KeyCode::Char('j') || key.code == KeyCode::Down {
+                let potential_offset = global_state.homepage_playlist_scroll_offset + 1;
+                let new_offset =
+                    if potential_offset >= global_state.homepage_playlist_count as i32 - 1 {
+                        0
+                    } else {
+                        potential_offset
+                    };
+                Roudy::update(
+                    global_state,
+                    RoudyMessage::HOMEPAGEUpdatePlaylistScrollOffset(new_offset),
+                );
+            } else if key.code == KeyCode::Char('k') || key.code == KeyCode::Up {
+                let potential_offset = global_state.homepage_playlist_scroll_offset - 1;
+                let new_offset = if potential_offset <= 0 {
+                    (global_state.homepage_playlist_count - 1) as i32
+                } else {
+                    potential_offset
+                };
+                Roudy::update(
+                    global_state,
+                    RoudyMessage::HOMEPAGEUpdatePlaylistScrollOffset(new_offset),
+                );
+            } else if key.code == KeyCode::Enter {
+                if let Some(sender) = req_api_data {
+                    Roudy::update(global_state, RoudyMessage::HOMEPAGEChangeSubpage(1));
+                    if let Some(playlist_data) = api_data.playlists.as_ref() {
 
-pub async fn listen_for_homepage_binds(key: KeyEvent, req_api_data: &Option<Sender<ClientEvent>>, global_state: &mut Roudy, api_data: &mut ApiData) {
-    if key.code == KeyCode::Char('j') || key.code == KeyCode::Down {
-        let new_offset = global_state.homepage_scroll_offset +1;
-        Roudy::update(global_state, RoudyMessage::HOMEPAGEUpdateScrollOffset(new_offset));
-    } else if key.code == KeyCode::Char('k') || key.code == KeyCode::Up {
-        let new_offset = global_state.homepage_scroll_offset -1;
-        Roudy::update(global_state, RoudyMessage::HOMEPAGEUpdateScrollOffset(new_offset));
-    } else if key.code == KeyCode::Enter {
-        if let Some(sender) = req_api_data {
-            let playlist_urn = api_data.playlists.as_ref().expect("should have")[global_state.homepage_scroll_offset as usize].playlist_urn.clone();
-            let _ = sender.send(ClientEvent::GetPlaylistTrack(playlist_urn)).await;
+                        let uri = playlist_data[global_state.homepage_playlist_scroll_offset as usize]
+                        .uri
+                        .clone();
+                        let uri_split = uri.rsplit(":").next();
+                    
+                        if let Some(id) = uri_split {
+                            let _ = sender
+                                .send(ClientEvent::GetPlaylistTrack(id.to_string()))
+                                .await;
+                        }   
+                    }
+                }
+            }
         }
+        1 => {
+            if key.code == KeyCode::Esc {
+                Roudy::update(global_state, RoudyMessage::HOMEPAGEChangeSubpage(0));
+            
+            } else if key.code == KeyCode::Char('j') || key.code == KeyCode::Down {
+                let potential_offset = global_state.homepage_tracks_scroll_offset + 1;
+                let new_offset =
+                    if potential_offset >= global_state.homepage_tracks_count as i32 - 1 {
+                        0
+                    } else {
+                        potential_offset
+                    };
+                Roudy::update(
+                    global_state,
+                    RoudyMessage::HOMEPAGEUpdateTracksScrollOffset(new_offset),
+                );
+            } else if key.code == KeyCode::Char('k') || key.code == KeyCode::Up {
+                let potential_offset = global_state.homepage_tracks_scroll_offset - 1;
+                let new_offset = if potential_offset <= 0 {
+                    (global_state.homepage_tracks_count - 1) as i32
+                } else {
+                    potential_offset
+                };
+                Roudy::update(
+                    global_state,
+                    RoudyMessage::HOMEPAGEUpdateTracksScrollOffset(new_offset),
+                );
+            } else if key.code == KeyCode::Enter {
+                if let Some(sender) = req_api_data {
+                    //start track playing via cpal
+                }
+            }
+        }
+        _ => {}
     }
 }

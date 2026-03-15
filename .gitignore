@@ -2,3 +2,4 @@
 .env
 .claude
 auth_credentials.json
+*.tar.gz
