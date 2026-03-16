@@ -3,19 +3,32 @@ use oauth2::url::Url;
 use crate::api::soundcloud::{playlist::APIPlaylist, playlist_tracks::APIPlaylistTracks, profile::APIProfile};
 pub enum RoudyMessage {
     Login,
-    ChangeTab(usize),
+    ChangeTab(SelectedTab),
     HOMEPAGEUpdatePlaylistScrollOffset(i32),
     HOMEPAGEUpdatePlaylistCount(usize),
-    HOMEPAGEChangeSubpage(i32),
+    HOMEPAGEChangeSubpage(HomepageSubpage),
     HOMEPAGEUpdateTracksScrollOffset(i32),
     HOMEPAGEUpdateTracksCount(usize),
 } 
+
+#[derive(PartialEq)]
+pub enum SelectedTab {
+    Home,
+    Profile,
+    ErrorStatus,
+    Test,
+}
+pub enum HomepageSubpage {
+    AllPlaylists,
+    TracksInPlaylist,
+}
+
 pub struct Roudy {
     pub logged_in: bool,
-    pub selected_tab: usize,
+    pub selected_tab: SelectedTab,
     pub homepage_playlist_scroll_offset: i32,
     pub homepage_playlist_count: usize,
-    pub homepage_subpage: i32, // 0 = playlist carousel 1 = playlist_tracks carousel
+    pub homepage_subpage: HomepageSubpage, 
     pub homepage_tracks_scroll_offset: i32,
     pub homepage_tracks_count: usize,
 }
@@ -24,10 +37,10 @@ impl Roudy {
     pub fn new() -> Self {
         Self {
             logged_in: false,
-            selected_tab: 0,
+            selected_tab: SelectedTab::Profile,
             homepage_playlist_scroll_offset: 0,
             homepage_playlist_count: 0,
-            homepage_subpage: 0,
+            homepage_subpage: HomepageSubpage::AllPlaylists,
             homepage_tracks_scroll_offset: 0,
             homepage_tracks_count: 0,
         }
@@ -89,12 +102,14 @@ pub enum ApiDataMessage {
     PlaylistsFetched(Vec<APIPlaylist>),
     PlaylistTracksFetched(Vec<APIPlaylistTracks>),
     TrackStreamFetched(Vec<u8>),
+    TrackMetadataFetched(String),
 }
 pub struct ApiData {
     pub profile: Option<APIProfile>,
     pub playlists: Option<Vec<APIPlaylist>>,
     pub playlist_tracks: Option<Vec<APIPlaylistTracks>>,
     pub track_stream: Option<Vec<u8>>,
+    pub track_metadata: Option<String>,
 }
 impl ApiData {
     pub fn new() -> Self {
@@ -103,6 +118,7 @@ impl ApiData {
             playlists: None,
             playlist_tracks: None,
             track_stream: None,
+            track_metadata: None,
         }
     }
     pub fn update(model: &mut Self, msg: ApiDataMessage) -> Option<ApiDataMessage> {
@@ -118,6 +134,9 @@ impl ApiData {
             }
             ApiDataMessage::TrackStreamFetched(data) => {
                 model.track_stream = Some(data);
+            }
+            ApiDataMessage::TrackMetadataFetched(data) => {
+                model.track_metadata = Some(data);
             }
         }
         None

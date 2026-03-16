@@ -1,7 +1,13 @@
 use ratatui::crossterm::event::KeyCode;
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::{api::request_handler::{ApiOutput, ClientEvent}, credentials_manager::{CredentialsEvent, CredentialsOutputEvent}, event::keybind::homepage_keybinds::listen_for_homepage_binds, global_state::{ApiData, Roudy, RoudyMessage}, types::{PollEvent, ServerEvent}};
+use crate::{
+    api::request_handler::{ApiOutput, ClientEvent},
+    credentials_manager::{CredentialsEvent, CredentialsOutputEvent},
+    event::keybind::homepage_keybinds::listen_for_homepage_binds,
+    global_state::{ApiData, Roudy, RoudyMessage, SelectedTab},
+    types::{PollEvent, ServerEvent},
+};
 
 #[derive(PartialEq)]
 pub enum KeypressListenerStatus {
@@ -16,10 +22,10 @@ pub async fn keypress_listener(
     req_api_data: &Option<Sender<ClientEvent>>,
     credentials_receiver: &mut Receiver<CredentialsOutputEvent>,
     credentials_messenger: &Sender<CredentialsEvent>,
-    shutdown_auth_server: & Sender<()>,
+    shutdown_auth_server: &Sender<()>,
     global_state: &mut Roudy,
     api_data: &mut ApiData,
-    ) -> KeypressListenerStatus {
+) -> KeypressListenerStatus {
     const PAGES: usize = 3;
     let mut status: KeypressListenerStatus = KeypressListenerStatus::Continue;
 
@@ -37,32 +43,52 @@ pub async fn keypress_listener(
                     }
                     credentials_receiver.close();
                     let _ = credentials_messenger.send(CredentialsEvent::Shutdown).await;
-                    
+
                     let _ = shutdown_auth_server.send(()).await;
-                    
-                    
+
                     status = KeypressListenerStatus::Shutdown;
                 } else if key.code == KeyCode::Tab && global_state.logged_in {
-                    let mut new_tab = global_state.selected_tab + 1;
-                    if new_tab >= PAGES {
-                        new_tab = 0;
-                    }
-                    Roudy::update(global_state, RoudyMessage::ChangeTab(new_tab));
-                    match new_tab {
-                        0 => {
+                    match global_state.selected_tab {
+                        SelectedTab::Home => {
+                            Roudy::update(
+                                global_state,
+                                RoudyMessage::ChangeTab(SelectedTab::Profile),
+                            );
+                        }
+                        SelectedTab::Profile => {
+                            Roudy::update(
+                                global_state,
+                                RoudyMessage::ChangeTab(SelectedTab::ErrorStatus),
+                            );
+                        }
+                        SelectedTab::ErrorStatus => {
+                            Roudy::update(global_state, RoudyMessage::ChangeTab(SelectedTab::Test));
+                        }
+                        SelectedTab::Test => {
+                            Roudy::update(global_state, RoudyMessage::ChangeTab(SelectedTab::Home));
+                        }
+                    };
+
+                    match global_state.selected_tab {
+                        SelectedTab::Home => {
                             if let Some(sender) = req_api_data.as_ref() {
                                 let _ = sender.send(ClientEvent::GetPlaylists).await;
                             }
                         }
-                        1 => {
+                        SelectedTab::Profile => {
                             if let Some(sender) = req_api_data.as_ref() {
                                 let _ = sender.send(ClientEvent::GetProfile).await;
                             }
                         }
-                        _ => {}
+                        SelectedTab::ErrorStatus => {
+                            
+                        }
+                        SelectedTab::Test => {
+                            
+                        }
                     }
                 }
-                if global_state.selected_tab == 0 {//check if were on the homepage and if so listen for binds
+                if global_state.selected_tab == SelectedTab::Home {
                     listen_for_homepage_binds(key, &req_api_data, global_state, api_data).await;
                 }
             }

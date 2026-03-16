@@ -1,10 +1,11 @@
-use crate::api::soundcloud::{playlist::{APIPlaylist, get_playlists}, playlist_tracks::{APIPlaylistTracks, get_playlist_tracks}, profile::{APIProfile, get_profile}, streams::stream_track};
+use crate::api::soundcloud::{playlist::{APIPlaylist, get_playlists}, playlist_tracks::{APIPlaylistTracks, get_playlist_tracks}, profile::{APIProfile, get_profile}, streams::stream_track, track_metadata::track_metadata};
 use tokio::sync::mpsc::{Receiver, Sender};
 pub enum ClientEvent {
     GetProfile,
     GetPlaylists,
     GetPlaylistTrack(String),
     StreamTrack(u64),
+    GetTrackMetadata(u64),
     UpdateAccessToken(String),
     Shutdown,
 }
@@ -13,6 +14,7 @@ pub enum ApiOutput {
     Playlists(Vec<APIPlaylist>),
     PlaylistTracks(Vec<APIPlaylistTracks>),
     TrackStream(Vec<u8>),
+    TrackMetadata(String),
     Error(String),
 }
 
@@ -70,6 +72,17 @@ impl ApiRequestHandler {
                         match stream {
                             Ok(data) => {
                                 let _ = data_tx.send(ApiOutput::TrackStream(data)).await;
+                            }
+                            Err(e) => {
+                                let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;
+                            }
+                        }
+                    }
+                    ClientEvent::GetTrackMetadata(id) => {
+                        let meta_data = track_metadata(&client, &access_token, id).await;
+                        match meta_data {
+                            Ok(data) => {
+                                let _ = data_tx.send(ApiOutput::TrackMetadata(data)).await;
                             }
                             Err(e) => {
                                 let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;

@@ -3,7 +3,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout},
 };
 use crate::{
-    global_state::{ApiData, ErrorState, Roudy, RoudyData},
+    global_state::{ApiData, ErrorState, Roudy, RoudyData, SelectedTab},
     layout::{components::{header::render_header_comp, track_bar::render_track_bar}, pages::{
         errors_status::render_errors_status_page, home::render_home_page, profile::render_profile_page
     }}
@@ -25,18 +25,22 @@ fn render_main_page(frame: &mut Frame, global_state: &Roudy, api_data: &ApiData,
         ])
         .split(frame.area());
 
-    render_header_comp(frame, chunks[0], global_state.selected_tab);
     match global_state.selected_tab {
-        0 => {
+        SelectedTab::Home => {
+            render_header_comp(frame, chunks[0], 0);
             render_home_page(frame, chunks[1], global_state, api_data);
         },
-        1 => {
+        SelectedTab::Profile => {
+            render_header_comp(frame, chunks[0], 1);
             render_profile_page(frame, chunks[1], api_data);
         },
-        2 => {
+        SelectedTab::ErrorStatus => {
+            render_header_comp(frame, chunks[0], 2);
             render_errors_status_page(frame, chunks[1], error_state);
         }
-        _ => {}
+        SelectedTab::Test => {
+            render_header_comp(frame, chunks[0], 3);
+        }
     }
     render_track_bar(frame, chunks[2], api_data);
 }

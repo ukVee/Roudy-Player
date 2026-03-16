@@ -3,7 +3,7 @@ use tokio::sync::mpsc::Sender;
 
 use crate::{
     api::request_handler::ClientEvent,
-    global_state::{ApiData, Roudy, RoudyMessage},
+    global_state::{ApiData, HomepageSubpage, Roudy, RoudyMessage},
 };
 
 
@@ -15,7 +15,7 @@ pub async fn listen_for_homepage_binds(
     api_data: &mut ApiData,
 ) {
     match global_state.homepage_subpage {
-        0 => {
+        HomepageSubpage::AllPlaylists => {
             if key.code == KeyCode::Char('j') || key.code == KeyCode::Down {
                 let potential_offset = global_state.homepage_playlist_scroll_offset + 1;
                 let new_offset =
@@ -41,7 +41,7 @@ pub async fn listen_for_homepage_binds(
                 );
             } else if key.code == KeyCode::Enter {
                 if let Some(sender) = req_api_data {
-                    Roudy::update(global_state, RoudyMessage::HOMEPAGEChangeSubpage(1));
+                    Roudy::update(global_state, RoudyMessage::HOMEPAGEChangeSubpage(HomepageSubpage::TracksInPlaylist));
                     if let Some(playlist_data) = api_data.playlists.as_ref() {
 
                         let uri = playlist_data[global_state.homepage_playlist_scroll_offset as usize]
@@ -58,9 +58,9 @@ pub async fn listen_for_homepage_binds(
                 }
             }
         }
-        1 => {
+        HomepageSubpage::TracksInPlaylist => {
             if key.code == KeyCode::Esc {
-                Roudy::update(global_state, RoudyMessage::HOMEPAGEChangeSubpage(0));
+                Roudy::update(global_state, RoudyMessage::HOMEPAGEChangeSubpage(HomepageSubpage::AllPlaylists));
             
             } else if key.code == KeyCode::Char('j') || key.code == KeyCode::Down {
                 let potential_offset = global_state.homepage_tracks_scroll_offset + 1;

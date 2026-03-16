@@ -9,7 +9,7 @@ pub fn render_header_comp(frame: &mut Frame, chunk: Rect, tab_num: usize) {
         .borders(Borders::ALL)
         .title_alignment(Alignment::Center);
     let header_area = header.inner(chunk);
-        let tab = Tabs::new(vec!["Home", "Profile", "Errors Status"])
+        let tab = Tabs::new(vec!["Home", "Profile", "Errors Status", "DevTest"])
         .style(Style::default().white())
         .highlight_style(Style::default().yellow())
         .divider(symbols::DOT)
