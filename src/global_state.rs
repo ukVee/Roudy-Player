@@ -88,11 +88,13 @@ pub enum ApiDataMessage {
     ProfileFetched(APIProfile),
     PlaylistsFetched(Vec<APIPlaylist>),
     PlaylistTracksFetched(Vec<APIPlaylistTracks>),
+    TrackStreamFetched(Vec<u8>),
 }
 pub struct ApiData {
     pub profile: Option<APIProfile>,
     pub playlists: Option<Vec<APIPlaylist>>,
     pub playlist_tracks: Option<Vec<APIPlaylistTracks>>,
+    pub track_stream: Option<Vec<u8>>,
 }
 impl ApiData {
     pub fn new() -> Self {
@@ -100,6 +102,7 @@ impl ApiData {
             profile: None,
             playlists: None,
             playlist_tracks: None,
+            track_stream: None,
         }
     }
     pub fn update(model: &mut Self, msg: ApiDataMessage) -> Option<ApiDataMessage> {
@@ -112,6 +115,9 @@ impl ApiData {
             }
             ApiDataMessage::PlaylistTracksFetched(data) => {
                 model.playlist_tracks = Some(data);
+            }
+            ApiDataMessage::TrackStreamFetched(data) => {
+                model.track_stream = Some(data);
             }
         }
         None

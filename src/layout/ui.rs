@@ -4,7 +4,7 @@ use ratatui::{
 };
 use crate::{
     global_state::{ApiData, ErrorState, Roudy, RoudyData},
-    layout::{components::header::render_header_comp, pages::{
+    layout::{components::{header::render_header_comp, track_bar::render_track_bar}, pages::{
         errors_status::render_errors_status_page, home::render_home_page, profile::render_profile_page
     }}
 
@@ -38,6 +38,7 @@ fn render_main_page(frame: &mut Frame, global_state: &Roudy, api_data: &ApiData,
         }
         _ => {}
     }
+    render_track_bar(frame, chunks[2], api_data);
 }
 
 pub fn ui(frame: &mut Frame, roudy: &Roudy, roudy_data: &RoudyData, api_data: &ApiData, error_state: &ErrorState) {

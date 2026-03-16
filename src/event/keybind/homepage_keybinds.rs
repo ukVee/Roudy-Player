@@ -87,7 +87,10 @@ pub async fn listen_for_homepage_binds(
                 );
             } else if key.code == KeyCode::Enter {
                 if let Some(sender) = req_api_data {
-                    //start track playing via cpal
+                    if let Some(tracks) = api_data.playlist_tracks.as_ref() {
+                        let id = tracks[global_state.homepage_tracks_scroll_offset as usize].id;
+                        let _ = sender.send(ClientEvent::StreamTrack(id)).await;
+                    }
                 }
             }
         }

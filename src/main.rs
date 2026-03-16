@@ -16,6 +16,7 @@ use std::io::stdout;
 use dotenv::dotenv;
 
 mod api;
+mod audio;
 mod event;
 mod types;
 mod layout;

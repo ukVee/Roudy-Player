@@ -5,10 +5,14 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.100"
+cpal = "0.17.3"
 dotenv = "0.15.0"
 oauth2 = "5.0.0"
 ratatui = "0.30.0"
 reqwest = { version = "0.13.1", features = ["json"] }
+ringbuf = "0.4.8"
 serde = {version = "1.0.228", features = ["derive"]}
 serde_json = "1.0.149"
+symphonia = {version = "0.5.5", features = ["mp3"]}
 tokio = {version = "1.49.0", features = ["full"]}
+
