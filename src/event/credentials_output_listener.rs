@@ -1,7 +1,7 @@
 use tokio::sync::mpsc::Receiver;
 use crate::global_state::{ErrorMessage, ErrorState};
 use crate::types::GetAccessToken;
-use crate::{api::soundcloud::auth_client::login_to_sc, credentials_manager::CredentialsOutputEvent, global_state::{RoudyData, RoudyDataMessage}};
+use crate::{api::soundcloud::auth_client::login_to_sc, auth::credentials_manager::CredentialsOutputEvent, global_state::{RoudyData, RoudyDataMessage}};
 
 #[derive(PartialEq)]
 pub enum CredentialsListenerMessage {

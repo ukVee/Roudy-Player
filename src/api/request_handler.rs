@@ -34,7 +34,7 @@ impl ApiRequestHandler {
 
     tokio::spawn(async move {
         loop {
-            if let Ok(event) = event_rx.try_recv() {
+            if let Some(event) = event_rx.recv().await {
                 match event {
                     ClientEvent::GetProfile => {
                         let profile_data = get_profile(&client, &access_token).await;

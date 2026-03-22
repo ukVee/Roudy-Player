@@ -17,7 +17,7 @@ cargo check          # Fast type checking without building
 
 ### Core Pattern: Multi-channel Message Passing
 
-All components communicate via `tokio::sync::mpsc` channels. The main event loop (`event/eloop.rs`) orchestrates everything in a synchronous loop that calls each listener sequentially per iteration.
+All components communicate via `tokio::sync::mpsc` channels (async) and `std::sync::mpsc` (audio thread). The main event loop (`event/eloop.rs`) orchestrates everything in a synchronous loop that calls each listener sequentially per iteration.
 
 ```
 main.rs
@@ -25,11 +25,12 @@ main.rs
        ├→ credentials_output_listener.rs  (handles CredentialsOutputEvent)
        ├→ keypress_output_listener.rs     (handles PollEvent → dispatches to homepage_keybinds)
        ├→ auth_server_listener.rs         (handles ServerEvent from OAuth callback)
-       ├→ api_output_listener.rs          (handles ApiOutput, updates global state)
+       ├→ api_output_listener.rs          (handles ApiOutput, updates global state, sends to audio)
        ├→ api/request_handler.rs          (API dispatcher, receives ClientEvent)
-       ├→ api/server.rs                   (OAuth TCP callback server on :3231)
+       ├→ auth_server/server.rs           (OAuth TCP callback server on :3231)
        ├→ credentials_manager.rs          (Token lifecycle, reads/writes auth_credentials.json)
        ├→ keypress_polling.rs             (crossterm keyboard events → PollEvent)
+       ├→ audio/audio_handler.rs          (dedicated std::thread for audio playback)
        └→ layout/ui.rs                    (terminal rendering)
 ```
 
@@ -44,8 +45,9 @@ Message types are spread across multiple modules:
 | `ApiDataMessage` | `global_state.rs` | → state | Cache API responses (ProfileFetched, PlaylistsFetched, PlaylistTracksFetched, TrackStreamFetched, TrackMetadataFetched) |
 | `ErrorMessage` | `global_state.rs` | → state | Error flag updates and log entries |
 | `ClientEvent` | `request_handler.rs` | → API handler | API requests (GetProfile, GetPlaylists, GetPlaylistTrack, StreamTrack, GetTrackMetadata, UpdateAccessToken, Shutdown) |
-| `ApiOutput` | `request_handler.rs` | ← API handler | API responses (Profile, Playlists, PlaylistTracks, TrackStream, TrackMetadata, Error) |
-| `AudioCommand` | `audio_handler.rs` | → audio thread | Audio control (Play, Pause, Resume, Shutdown) |
+| `ApiOutput` | `request_handler.rs` | ← API handler | API responses (Profile, Playlists, PlaylistTracks, TrackStream, TrackMediaPlaylist, TrackMetadata, Error) |
+| `AudioCommand` | `audio_handler.rs` | → audio thread | Audio control (HlsReceived, Pause, Resume, Shutdown) |
+| `AudioMessage` | `audio_handler.rs` | → AudioHandler | State updates (StoreMediaPlaylist) |
 | `ServerEvent` | `types.rs` | ← OAuth server | OAuth callback (Url, Shutdown) |
 | `PollEvent` | `types.rs` | ← keypress polling | Keyboard input (Input(KeyEvent)) |
 | `CredentialsEvent` | `credentials_manager.rs` | → creds manager | Token ops (SaveToken, Shutdown) |
@@ -82,18 +84,28 @@ Keybinds:
 - `q` — quit application
 - `j`/`Down` — scroll down in current list
 - `k`/`Up` — scroll up in current list
-- `Enter` — select playlist (subpage 0→1) or play track (subpage 1, WIP)
+- `Enter` — select playlist (AllPlaylists→TracksInPlaylist) or stream track via HLS (TracksInPlaylist)
 - `Esc` — go back from playlist tracks to playlists (subpage 1→0)
 
 ### Audio Pipeline (`audio/`)
 
-- `audio_handler.rs` — Dedicated `std::thread` receiving `AudioCommand` messages via `std::sync::mpsc`. Holds the cpal `Stream` to keep playback alive.
+- `audio_handler.rs` — Dedicated `std::thread` receiving `AudioCommand` messages via `std::sync::mpsc`. On first HLS segment: creates cpal device, ring buffer (SPSC via ringbuf), and output stream. Subsequent segments are decoded and pushed into the existing ring buffer. Holds the cpal `Stream` to keep playback alive.
 - `decoder.rs` — Decodes MP3 bytes (`Vec<u8>`) to PCM `Vec<f32>` using Symphonia. Returns `DecodedStream` with samples, sample_rate, and channel count.
-- `player.rs` — Builds cpal output stream using a ringbuf SPSC queue. Consumer runs in cpal's audio callback thread.
+- `player.rs` — Legacy standalone player (replaced by HLS handler in audio_handler.rs). Builds cpal output stream for a single `Vec<f32>`.
 
 ### API Layer (`api/soundcloud/`)
 
-Each endpoint is its own module (`profile.rs`, `playlist.rs`, `playlist_tracks.rs`, `streams.rs`, `track_metadata.rs`). Additionally, `auth_client.rs` handles OAuth login/token exchange. The `request_handler.rs` runs as a long-lived async task receiving `ClientEvent` messages and calling the appropriate API module.
+Endpoints are organized into submodules:
+- `profile.rs` — GET /me
+- `playlists/playlist.rs` — GET /me/playlists
+- `playlists/playlist_tracks.rs` — GET /playlists/{id}/tracks
+- `tracks/track_urls.rs` — GET /tracks/{id}/streams → `TrackUrls` struct (http_mp3_128, hls_mp3_128, hls_aac_160, preview_mp3_128)
+- `tracks/track_hls_playlist.rs` — Fetches M3U8 manifest from HLS URL
+- `tracks/track_hls_segments.rs` — Fetches individual HLS audio segment bytes
+- `tracks/track_metadata.rs` — GET /tracks/{id} → raw JSON
+- `auth_client.rs` — OAuth2 PKCE login/token exchange
+
+The `request_handler.rs` runs as a long-lived async task receiving `ClientEvent` messages. For `StreamTrack`: fetches stream URLs → fetches HLS manifest → parses M3U8 → downloads each segment and sends bytes to the audio thread via `api_output_listener`.
 
 ### Configuration
 

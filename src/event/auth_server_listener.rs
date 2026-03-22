@@ -1,6 +1,6 @@
 use tokio::sync::mpsc::{Receiver, Sender};
 
-use crate::{credentials_manager::{ CredentialsEvent}, global_state::{ErrorMessage, ErrorState}, helpers::parse_query_params::parse_query_params, types::{GetAccessToken, ServerEvent}};
+use crate::{auth::credentials_manager::CredentialsEvent, global_state::{ErrorMessage, ErrorState}, helpers::parse_query_params::parse_query_params, types::{GetAccessToken, ServerEvent}};
 
 
 

@@ -1,7 +1,7 @@
 use crate::{
     api::{
         request_handler::{ApiOutput, ApiRequestHandler, ClientEvent},
-    }, audio::audio_handler::AudioHandler, auth_server::server::start_server, credentials_manager::{CredentialsEvent, CredentialsManager}, event::{api_output_listener::api_listener, auth_server_listener::auth_server_listener, credentials_output_listener::{CredentialsListenerMessage, credentials_listener}, keybind::{keypress_output_listener::{KeypressListenerStatus, keypress_listener}, keypress_polling::setup_event_polling}}, global_state::{
+    }, audio::audio_handler::AudioHandler, auth::{server::start_server, credentials_manager::{CredentialsEvent, CredentialsManager}}, event::{api_output_listener::api_listener, auth_server_listener::auth_server_listener, credentials_output_listener::{CredentialsListenerMessage, credentials_listener}, keybind::{keypress_output_listener::{KeypressListenerStatus, keypress_listener}, keypress_polling::setup_event_polling}}, global_state::{
         ApiData, ErrorMessage, ErrorState, Roudy, RoudyData, 
         RoudyMessage,
     }, layout::ui::ui, types::GetAccessToken
