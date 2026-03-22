@@ -41,10 +41,11 @@ Message types are spread across multiple modules:
 |------|----------|-----------|---------|
 | `RoudyMessage` | `global_state.rs` | → state | App state updates (Login, ChangeTab, subpage, scroll offsets, counts) |
 | `RoudyDataMessage` | `global_state.rs` | → state | Auth data updates (SetLoginURL) |
-| `ApiDataMessage` | `global_state.rs` | → state | Cache API responses (ProfileFetched, PlaylistsFetched, PlaylistTracksFetched) |
+| `ApiDataMessage` | `global_state.rs` | → state | Cache API responses (ProfileFetched, PlaylistsFetched, PlaylistTracksFetched, TrackStreamFetched, TrackMetadataFetched) |
 | `ErrorMessage` | `global_state.rs` | → state | Error flag updates and log entries |
-| `ClientEvent` | `request_handler.rs` | → API handler | API requests (GetProfile, GetPlaylists, GetPlaylistTrack, UpdateAccessToken, Shutdown) |
-| `ApiOutput` | `request_handler.rs` | ← API handler | API responses (Profile, Playlists, PlaylistTracks, Error) |
+| `ClientEvent` | `request_handler.rs` | → API handler | API requests (GetProfile, GetPlaylists, GetPlaylistTrack, StreamTrack, GetTrackMetadata, UpdateAccessToken, Shutdown) |
+| `ApiOutput` | `request_handler.rs` | ← API handler | API responses (Profile, Playlists, PlaylistTracks, TrackStream, TrackMetadata, Error) |
+| `AudioCommand` | `audio_handler.rs` | → audio thread | Audio control (Play, Pause, Resume, Shutdown) |
 | `ServerEvent` | `types.rs` | ← OAuth server | OAuth callback (Url, Shutdown) |
 | `PollEvent` | `types.rs` | ← keypress polling | Keyboard input (Input(KeyEvent)) |
 | `CredentialsEvent` | `credentials_manager.rs` | → creds manager | Token ops (SaveToken, Shutdown) |
@@ -52,9 +53,9 @@ Message types are spread across multiple modules:
 
 ### State Structures (`global_state.rs`)
 
-- `Roudy` — UI state: `logged_in`, `selected_tab` (0=Home, 1=Profile, 2=Errors), `homepage_playlist_scroll_offset`, `homepage_playlist_count`, `homepage_subpage` (0=playlists, 1=playlist_tracks), `homepage_tracks_scroll_offset`, `homepage_tracks_count`
+- `Roudy` — UI state: `logged_in`, `selected_tab` (enum: Home, Profile, ErrorStatus, Test), `homepage_playlist_scroll_offset`, `homepage_playlist_count`, `homepage_subpage` (enum: AllPlaylists, TracksInPlaylist), `homepage_tracks_scroll_offset`, `homepage_tracks_count`
 - `RoudyData` — Auth data: `login_url`
-- `ApiData` — Cached API responses: `profile`, `playlists`, `playlist_tracks`
+- `ApiData` — Cached API responses: `profile`, `playlists`, `playlist_tracks`, `track_stream`, `track_metadata`
 - `ErrorState` — Error flags (`failed_to_parse_code_param`, `csrf_token_does_not_match`, `failed_to_shutdown_server`, `failed_to_parse_csrf_param`, `failed_to_mount_api_request_handler`) and log vectors (`api_error_log`, `credentials_error_log`)
 
 ### Authentication Flow
@@ -68,12 +69,13 @@ Message types are spread across multiple modules:
 
 ### UI Structure
 
-Three-tab layout:
-- **Home (Tab 0):** Two-level subpage navigation:
-  - Subpage 0 — Playlist carousel: name, duration, track count
-  - Subpage 1 — Playlist tracks carousel: track listing for selected playlist
-- **Profile (Tab 1):** User profile info
-- **Errors (Tab 2):** API/credentials error log
+Four-tab layout:
+- **Home:** Two-level subpage navigation:
+  - AllPlaylists — Playlist carousel: name, duration, track count
+  - TracksInPlaylist — Playlist tracks carousel: track listing for selected playlist
+- **Profile:** User profile info
+- **ErrorStatus:** API/credentials error log
+- **Test:** Debug page for raw track metadata JSON
 
 Keybinds:
 - `Tab` — switch between tabs
@@ -83,9 +85,15 @@ Keybinds:
 - `Enter` — select playlist (subpage 0→1) or play track (subpage 1, WIP)
 - `Esc` — go back from playlist tracks to playlists (subpage 1→0)
 
+### Audio Pipeline (`audio/`)
+
+- `audio_handler.rs` — Dedicated `std::thread` receiving `AudioCommand` messages via `std::sync::mpsc`. Holds the cpal `Stream` to keep playback alive.
+- `decoder.rs` — Decodes MP3 bytes (`Vec<u8>`) to PCM `Vec<f32>` using Symphonia. Returns `DecodedStream` with samples, sample_rate, and channel count.
+- `player.rs` — Builds cpal output stream using a ringbuf SPSC queue. Consumer runs in cpal's audio callback thread.
+
 ### API Layer (`api/soundcloud/`)
 
-Each endpoint is its own module (`profile.rs`, `playlist.rs`, `playlist_tracks.rs`). Additionally, `auth_client.rs` handles OAuth login/token exchange. The `request_handler.rs` runs as a long-lived async task receiving `ClientEvent` messages and calling the appropriate API module.
+Each endpoint is its own module (`profile.rs`, `playlist.rs`, `playlist_tracks.rs`, `streams.rs`, `track_metadata.rs`). Additionally, `auth_client.rs` handles OAuth login/token exchange. The `request_handler.rs` runs as a long-lived async task receiving `ClientEvent` messages and calling the appropriate API module.
 
 ### Configuration
 

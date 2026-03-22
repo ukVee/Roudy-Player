@@ -6,7 +6,7 @@ use symphonia::{core::{audio::{SampleBuffer}, codecs::{CODEC_TYPE_NULL, DecoderO
 pub struct DecodedStream {
     pub stream_samples: Vec<f32>,
     pub sample_rate: u32,
-    pub channels: usize,
+    pub channels: u16,
 }
 
 
@@ -27,7 +27,7 @@ pub fn decode_stream(stream: Vec<u8>) -> Result<DecodedStream, anyhow::Error> {
         .expect("no audio track");
     let track_id = track.id;
 
-    let channels_count = track.codec_params.channels.expect("should have channels").count();
+    let channels_count = track.codec_params.channels.expect("should have channels").count() as u16;
     let sample_rate = track.codec_params.sample_rate.expect("should have");
     
 

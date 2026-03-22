@@ -2,6 +2,7 @@
 #[derive(serde::Deserialize)]
 pub struct APIPlaylistTracks {
         pub id: u64,
+        pub urn: String,
         pub streamable: bool,
         pub title: String,
         pub description: Option<String>,

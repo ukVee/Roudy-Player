@@ -1,6 +1,6 @@
 use oauth2::url::Url;
 
-use crate::api::soundcloud::{playlist::APIPlaylist, playlist_tracks::APIPlaylistTracks, profile::APIProfile};
+use crate::api::soundcloud::{playlists::{playlist::APIPlaylist, playlist_tracks::APIPlaylistTracks}, profile::APIProfile};
 pub enum RoudyMessage {
     Login,
     ChangeTab(SelectedTab),

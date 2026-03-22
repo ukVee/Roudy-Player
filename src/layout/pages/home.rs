@@ -7,6 +7,7 @@ pub fn render_home_page(frame: &mut Frame, chunk: Rect, global_state: &Roudy, ap
     let block = Block::default()
         .borders(Borders::LEFT | Borders::RIGHT);
     let block_area = block.inner(chunk);
+    
     frame.render_widget(block, chunk);
 
     match global_state.homepage_subpage {
@@ -16,7 +17,6 @@ pub fn render_home_page(frame: &mut Frame, chunk: Rect, global_state: &Roudy, ap
         HomepageSubpage::TracksInPlaylist => {
             render_playlist_tracks_subpage(frame, block_area, &global_state, &api_data);
         }
-        _ => {}
     }
 
 }

@@ -17,6 +17,7 @@ use dotenv::dotenv;
 
 mod api;
 mod audio;
+mod auth_server;
 mod event;
 mod types;
 mod layout;

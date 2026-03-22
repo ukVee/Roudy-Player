@@ -1,8 +1,7 @@
 use crate::{
     api::{
         request_handler::{ApiOutput, ApiRequestHandler, ClientEvent},
-        server::start_server,
-    }, audio::audio_handler::AudioHandler, credentials_manager::CredentialsManager, event::{api_output_listener::api_listener, auth_server_listener::auth_server_listener, credentials_output_listener::{CredentialsListenerMessage, credentials_listener}, keybind::{keypress_output_listener::{KeypressListenerStatus, keypress_listener}, keypress_polling::setup_event_polling}}, global_state::{
+    }, audio::audio_handler::AudioHandler, auth_server::server::start_server, credentials_manager::{CredentialsEvent, CredentialsManager}, event::{api_output_listener::api_listener, auth_server_listener::auth_server_listener, credentials_output_listener::{CredentialsListenerMessage, credentials_listener}, keybind::{keypress_output_listener::{KeypressListenerStatus, keypress_listener}, keypress_polling::setup_event_polling}}, global_state::{
         ApiData, ErrorMessage, ErrorState, Roudy, RoudyData, 
         RoudyMessage,
     }, layout::ui::ui, types::GetAccessToken
@@ -18,7 +17,8 @@ pub async fn event_loop(
 ) -> anyhow::Result<Terminal<CrosstermBackend<Stdout>>> {
     let mut keybind_receiver = setup_event_polling();
     let (mut server_receiver, shutdown_auth_server) = start_server().await?;
-    let mut audio_receiver = AudioHandler::mount().audio_messeneger;
+    let mut audio_handler = AudioHandler::mount();
+    let mut audio_receiver = audio_handler.audio_messeneger.clone();
 
     let mut api_data_receiver: Option<Receiver<ApiOutput>> = None;
     let mut req_api_data: Option<Sender<ClientEvent>> = None;
@@ -43,9 +43,20 @@ pub async fn event_loop(
             let _ = req_api_data.as_ref().expect("should have").send(ClientEvent::UpdateAccessToken(updated_token.clone())).await;
         }
 
-        let signal = keypress_listener(&mut keybind_receiver, &mut server_receiver, &mut api_data_receiver, &req_api_data, &mut credentials_receiver, &credentials_messenger, &shutdown_auth_server, &mut global_state, &mut api_data).await;
+        let signal = keypress_listener(&mut keybind_receiver,&req_api_data, &mut global_state, &mut api_data).await;
 
         if signal == KeypressListenerStatus::Shutdown {
+            keybind_receiver.close();
+            server_receiver.close();
+            if let Some(rx) = api_data_receiver.as_mut() {
+                rx.close();
+            }
+            if let Some(tx) = req_api_data {
+                let _ = tx.send(ClientEvent::Shutdown).await;
+            }
+            credentials_receiver.close();
+            let _ = credentials_messenger.send(CredentialsEvent::Shutdown).await;
+            let _ = shutdown_auth_server.send(()).await;
             break;
         }
         if !server_receiver.is_closed() {
@@ -71,7 +82,7 @@ pub async fn event_loop(
             }
         }
 
-        api_listener(&mut api_data_receiver, &mut audio_receiver, &mut global_state, &mut api_data, &mut error_state);
+        api_listener(&mut api_data_receiver, &mut audio_receiver, &mut audio_handler, &mut global_state, &mut api_data, &mut error_state);
 
         terminal.draw(|f| {
             ui(f, &global_state, &roudy_data, &api_data, &error_state);

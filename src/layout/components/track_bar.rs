@@ -1,8 +1,6 @@
-use std::fmt::format;
+use ratatui::{Frame, layout::Rect, widgets::Paragraph};
 
-use ratatui::{Frame, layout::Rect, widgets::{Paragraph, Wrap}};
-
-use crate::{api, global_state::ApiData};
+use crate::{global_state::ApiData};
 
 
 

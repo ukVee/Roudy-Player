@@ -1,10 +1,11 @@
-use crate::api::soundcloud::{playlist::{APIPlaylist, get_playlists}, playlist_tracks::{APIPlaylistTracks, get_playlist_tracks}, profile::{APIProfile, get_profile}, streams::stream_track, track_metadata::track_metadata};
+use crate::api::soundcloud::{playlists::{playlist::{APIPlaylist, get_playlists}, playlist_tracks::{APIPlaylistTracks, get_playlist_tracks}}, profile::{APIProfile, get_profile}, tracks::{track_hls_playlist::get_track_manifest, track_hls_segments::get_track_segments, track_metadata::track_metadata, track_urls::get_streaming_track_urls}};
+use m3u8_rs::{MediaPlaylist, parse_media_playlist};
 use tokio::sync::mpsc::{Receiver, Sender};
 pub enum ClientEvent {
     GetProfile,
     GetPlaylists,
     GetPlaylistTrack(String),
-    StreamTrack(u64),
+    StreamTrack(String),
     GetTrackMetadata(u64),
     UpdateAccessToken(String),
     Shutdown,
@@ -14,6 +15,7 @@ pub enum ApiOutput {
     Playlists(Vec<APIPlaylist>),
     PlaylistTracks(Vec<APIPlaylistTracks>),
     TrackStream(Vec<u8>),
+    TrackMediaPlaylist((Vec<u8>,MediaPlaylist)),
     TrackMetadata(String),
     Error(String),
 }
@@ -68,10 +70,43 @@ impl ApiRequestHandler {
                         }
                     }
                     ClientEvent::StreamTrack(id) => {
-                        let stream = stream_track(&client, &access_token, id).await;
+                        let stream = get_streaming_track_urls(&client, &access_token, id).await;
                         match stream {
                             Ok(data) => {
-                                let _ = data_tx.send(ApiOutput::TrackStream(data)).await;
+                                let manifest = get_track_manifest(&client, &access_token, data.hls_mp3_128_url).await;
+                                match manifest {
+                                    Ok(playlist) => {
+                                        match parse_media_playlist(playlist.as_bytes()) {
+                                            Ok(media_playlist) => {
+                                                let mut uris = vec![];
+                                                for segment in &media_playlist.1.segments {
+                                                    let uri = &segment.uri;
+                                                    uris.push(uri);
+                                                }
+
+                                                for url in uris {
+                                                    let segments = get_track_segments(&client, &access_token, url.to_string()).await;
+                                                    match segments {
+                                                        Ok(bytes) => {
+                                                            let _ = data_tx.send(ApiOutput::TrackStream(bytes.to_vec())).await;
+                                                        }
+                                                        Err(e) => {
+                                                            let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;
+                                                        }
+                                                    }
+                                                }
+
+                                                let _ = data_tx.send(ApiOutput::TrackMediaPlaylist((media_playlist.0.to_vec(), media_playlist.1))).await;
+                                            }
+                                            Err(e) => {
+                                                let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;
+                                            }
+                                        };
+                                    }
+                                    Err(e) => {
+                                        let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;
+                                    }
+                                };
                             }
                             Err(e) => {
                                 let _ = data_tx.send(ApiOutput::Error(e.to_string())).await;
