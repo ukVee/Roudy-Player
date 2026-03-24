@@ -51,7 +51,7 @@ pub struct QueryParams {
 pub struct AuthCredentials {
     pub access_token: String,
     pub refresh_token: String,
-    pub expires_at: String,
+    pub expires_at: u64,
 
 }
 
