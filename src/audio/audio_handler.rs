@@ -68,7 +68,7 @@ impl AudioHandler {
 
                                 let stream = device.build_output_stream(&stream_config, move |data: &mut [f32], _: &cpal::OutputCallbackInfo| {
                                     for sample in data.iter_mut() {
-                                        *sample = consumer.try_pop().unwrap_or(0.0); // silence on underrun
+                                        *sample = consumer.try_pop().unwrap_or(0.0);
                                     }
                                 }, |err| {
                                     eprintln!("error: {err}")

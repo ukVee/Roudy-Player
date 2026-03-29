@@ -41,10 +41,6 @@ pub async fn start_server() -> Result<(Receiver<ServerEvent>, Sender<()>)> {
 
     tokio::spawn(async move {
         loop {
-            if let Ok(_) = shutdown_rx.try_recv() {
-                let _ = event_tx.send(ServerEvent::Shutdown).await;
-                break;
-            }
             tokio::select! {
                 res = listener.accept() => {
                     let (mut stream, _) = match res {
@@ -60,6 +56,10 @@ pub async fn start_server() -> Result<(Receiver<ServerEvent>, Sender<()>)> {
                             break;
                         }
                     }
+                }
+                _ = shutdown_rx.recv() => {
+                    let _ = event_tx.send(ServerEvent::Shutdown).await;
+                    break;
                 }
             }
         }

@@ -17,22 +17,24 @@ cargo check          # Fast type checking without building
 
 ### Core Pattern: Multi-channel Message Passing
 
-All components communicate via `tokio::sync::mpsc` channels (async) and `std::sync::mpsc` (audio thread). The main event loop (`event/eloop.rs`) orchestrates everything in a synchronous loop that calls each listener sequentially per iteration.
+All components communicate via `tokio::sync::mpsc` channels (async) and `std::sync::mpsc` (audio thread). The main event loop (`event/eloop.rs`) uses `tokio::select!` to block until at least one channel has a message, then dispatches to the appropriate handler. The UI only redraws when state actually changes.
 
 ```
 main.rs
-  └→ eloop.rs (orchestrator loop)
+  └→ eloop.rs (orchestrator — tokio::select! over all channels)
        ├→ credentials_output_listener.rs  (handles CredentialsOutputEvent)
        ├→ keypress_output_listener.rs     (handles PollEvent → dispatches to homepage_keybinds)
        ├→ auth_server_listener.rs         (handles ServerEvent from OAuth callback)
        ├→ api_output_listener.rs          (handles ApiOutput, updates global state, sends to audio)
-       ├→ api/request_handler.rs          (API dispatcher, receives ClientEvent)
-       ├→ auth_server/server.rs           (OAuth TCP callback server on :3231)
-       ├→ credentials_manager.rs          (Token lifecycle, reads/writes auth_credentials.json)
+       ├→ api/request_handler.rs          (API dispatcher, receives ClientEvent via recv().await)
+       ├→ auth/server.rs                  (OAuth TCP callback server on :3231)
+       ├→ auth/credentials_manager.rs     (Token lifecycle — select! with recv + sleep_until expiry deadline)
        ├→ keypress_polling.rs             (crossterm keyboard events → PollEvent)
-       ├→ audio/audio_handler.rs          (dedicated std::thread for audio playback)
+       ├→ audio/audio_handler.rs          (dedicated std::thread for audio playback via blocking recv)
        └→ layout/ui.rs                    (terminal rendering)
 ```
+
+Listener functions accept already-received messages (not receivers) — the `select!` in eloop.rs does the receiving and passes the message to each handler.
 
 ### Key Message Types
 
@@ -50,8 +52,8 @@ Message types are spread across multiple modules:
 | `AudioMessage` | `audio_handler.rs` | → AudioHandler | State updates (StoreMediaPlaylist) |
 | `ServerEvent` | `types.rs` | ← OAuth server | OAuth callback (Url, Shutdown) |
 | `PollEvent` | `types.rs` | ← keypress polling | Keyboard input (Input(KeyEvent)) |
-| `CredentialsEvent` | `credentials_manager.rs` | → creds manager | Token ops (SaveToken, Shutdown) |
-| `CredentialsOutputEvent` | `credentials_manager.rs` | ← creds manager | Token status (AccessToken, Error, PromptLogin) |
+| `CredentialsEvent` | `auth/credentials_manager.rs` | → creds manager | Token ops (SaveToken, Shutdown) |
+| `CredentialsOutputEvent` | `auth/credentials_manager.rs` | ← creds manager | Token status (AccessToken, Error, PromptLogin) |
 
 ### State Structures (`global_state.rs`)
 
@@ -62,12 +64,13 @@ Message types are spread across multiple modules:
 
 ### Authentication Flow
 
-1. App starts → `CredentialsManager` checks for `auth_credentials.json`
-2. If missing/expired → display login page with OAuth URL (uses PKCE)
-3. User completes OAuth → callback hits `localhost:3231/token?code=XXX&state=YYY`
-4. CSRF token validated → code exchanged for access token → saved to `auth_credentials.json`
-5. If token exists but expired → refresh via refresh token
-6. `ApiRequestHandler` mounted with access token → main UI renders and API requests begin
+1. App starts → `CredentialsManager` reads `auth_credentials.json` once before its event loop
+2. If missing → sends `PromptLogin`, sets deadline far in future; if found → sends `AccessToken`, computes expiry deadline via `compute_deadline()`
+3. If token already expired at load → `sleep_until` fires immediately, triggering refresh
+4. User completes OAuth → callback hits `localhost:3231/token?code=XXX&state=YYY`
+5. CSRF token validated → code exchanged for access token → saved to `auth_credentials.json`
+6. On `SaveToken` or timer-driven refresh → new deadline computed from actual `expires_at` timestamp (no fixed polling interval)
+7. `ApiRequestHandler` mounted with access token → main UI renders and API requests begin
 
 ### UI Structure
 
@@ -91,7 +94,6 @@ Keybinds:
 
 - `audio_handler.rs` — Dedicated `std::thread` receiving `AudioCommand` messages via `std::sync::mpsc`. On first HLS segment: creates cpal device, ring buffer (SPSC via ringbuf), and output stream. Subsequent segments are decoded and pushed into the existing ring buffer. Holds the cpal `Stream` to keep playback alive.
 - `decoder.rs` — Decodes MP3 bytes (`Vec<u8>`) to PCM `Vec<f32>` using Symphonia. Returns `DecodedStream` with samples, sample_rate, and channel count.
-- `player.rs` — Legacy standalone player (replaced by HLS handler in audio_handler.rs). Builds cpal output stream for a single `Vec<f32>`.
 
 ### API Layer (`api/soundcloud/`)
 
@@ -105,7 +107,12 @@ Endpoints are organized into submodules:
 - `tracks/track_metadata.rs` — GET /tracks/{id} → raw JSON
 - `auth_client.rs` — OAuth2 PKCE login/token exchange
 
-The `request_handler.rs` runs as a long-lived async task receiving `ClientEvent` messages. For `StreamTrack`: fetches stream URLs → fetches HLS manifest → parses M3U8 → downloads each segment and sends bytes to the audio thread via `api_output_listener`.
+### Auth Module (`auth/`)
+
+- `credentials_manager.rs` — Token lifecycle. Reads `auth_credentials.json` once at startup, then runs a `tokio::select!` loop over `CredentialsEvent` messages and a `sleep_until(deadline)` for expiry-based refresh. Deadline is computed from the actual `expires_at` unix timestamp, not a fixed interval.
+- `server.rs` — OAuth TCP callback server on `localhost:3231`. Uses `tokio::select!` on `listener.accept()`.
+
+The `request_handler.rs` runs as a long-lived async task blocking on `recv().await` for `ClientEvent` messages. For `StreamTrack`: fetches stream URLs → fetches HLS manifest → parses M3U8 → downloads each segment and sends bytes to the audio thread via `api_output_listener`.
 
 ### Configuration
 

@@ -1,16 +1,26 @@
 use crate::{
-    api::{
-        request_handler::{ApiOutput, ApiRequestHandler, ClientEvent},
-    }, audio::audio_handler::AudioHandler, auth::{server::start_server, credentials_manager::{CredentialsEvent, CredentialsManager}}, event::{api_output_listener::api_listener, auth_server_listener::auth_server_listener, credentials_output_listener::{CredentialsListenerMessage, credentials_listener}, keybind::{keypress_output_listener::{KeypressListenerStatus, keypress_listener}, keypress_polling::setup_event_polling}}, global_state::{
-        ApiData, ErrorMessage, ErrorState, Roudy, RoudyData, 
-        RoudyMessage,
-    }, layout::ui::ui, types::GetAccessToken
+    api::request_handler::{ApiOutput, ApiRequestHandler, ClientEvent},
+    audio::audio_handler::AudioHandler,
+    auth::{
+        credentials_manager::{CredentialsEvent, CredentialsManager},
+        server::start_server,
+    },
+    event::{
+        api_output_listener::api_listener,
+        auth_server_listener::auth_server_listener,
+        credentials_output_listener::{credentials_listener},
+        keybind::{
+            keypress_output_listener::keypress_listener, keypress_polling::setup_event_polling,
+        },
+    },
+    global_state::{ApiData, ErrorMessage, ErrorState, Roudy, RoudyData, RoudyMessage},
+    layout::ui::ui,
+    types::GetAccessToken,
 };
 use ratatui::{Terminal, backend::CrosstermBackend};
 use std::io::Stdout;
-use tokio::sync::{mpsc::Receiver,};
+use tokio::sync::mpsc::Receiver;
 use tokio::sync::mpsc::Sender;
-
 
 pub async fn event_loop(
     mut terminal: Terminal<CrosstermBackend<Stdout>>,
@@ -29,39 +39,53 @@ pub async fn event_loop(
     let mut roudy_data = RoudyData::new();
     let mut error_state = ErrorState::new();
     let mut api_data = ApiData::new();
-    let (credentials_messenger, mut credentials_receiver) =CredentialsManager::mount().await.cred_channels;
+    let (credentials_messenger, mut credentials_receiver) =
+        CredentialsManager::mount().await.cred_channels;
     let mut request_handler_mounted = false;
 
     let mut get_access_token: GetAccessToken = None;
     let mut csrf_token: Option<oauth2::CsrfToken> = None;
-    
+
     loop {
-        let message = credentials_listener(&mut credentials_receiver, &mut roudy_data, &mut get_access_token, &mut csrf_token, &mut access_token, &mut error_state).await;
-
-        if message == CredentialsListenerMessage::NewTokenReceived && req_api_data.is_some() && access_token.is_some() {
-            let updated_token = access_token.as_ref().expect("should have");
-            let _ = req_api_data.as_ref().expect("should have").send(ClientEvent::UpdateAccessToken(updated_token.clone())).await;
-        }
-
-        let signal = keypress_listener(&mut keybind_receiver,&req_api_data, &mut global_state, &mut api_data).await;
-
-        if signal == KeypressListenerStatus::Shutdown {
-            keybind_receiver.close();
-            server_receiver.close();
-            if let Some(rx) = api_data_receiver.as_mut() {
-                rx.close();
+        tokio::select! {
+            Some(msg) = credentials_receiver.recv() => {
+                let new_token = credentials_listener(msg, &mut roudy_data, &mut get_access_token, &mut csrf_token, &mut access_token, &mut error_state).await;
+                if new_token && req_api_data.is_some() && access_token.is_some() {
+                    let updated_token = access_token.as_ref().expect("should have");
+                    let _ = req_api_data.as_ref().expect("should have").send(ClientEvent::UpdateAccessToken(updated_token.clone())).await;
+                }
             }
-            if let Some(tx) = req_api_data {
-                let _ = tx.send(ClientEvent::Shutdown).await;
+            Some(msg) = keybind_receiver.recv() => {
+                let shutdown = keypress_listener(msg,&req_api_data,&mut global_state,&mut api_data,).await;
+                if shutdown {
+                    keybind_receiver.close();
+                    server_receiver.close();
+                    if let Some(rx) = api_data_receiver.as_mut() {
+                        rx.close();
+                    }
+                    if let Some(tx) = req_api_data {
+                        let _ = tx.send(ClientEvent::Shutdown).await;
+                    }
+                    credentials_receiver.close();
+                    let _ = credentials_messenger.send(CredentialsEvent::Shutdown).await;
+                    let _ = shutdown_auth_server.send(()).await;
+                    break;
+                }
             }
-            credentials_receiver.close();
-            let _ = credentials_messenger.send(CredentialsEvent::Shutdown).await;
-            let _ = shutdown_auth_server.send(()).await;
-            break;
-        }
-        if !server_receiver.is_closed() {
-            auth_server_listener(&mut server_receiver, &csrf_token, &mut error_state, &credentials_messenger, &shutdown_auth_server, &mut get_access_token).await;
-
+            Some(msg) = server_receiver.recv(), if !server_receiver.is_closed() => {
+                let shutdown_auth_server = auth_server_listener(msg,&csrf_token,&mut error_state,&credentials_messenger,&shutdown_auth_server,&mut get_access_token,).await;
+                if shutdown_auth_server {
+                    server_receiver.close();
+                }
+            }
+            Some(msg) = async {
+                match api_data_receiver.as_mut() {
+                    Some(rx) => rx.recv().await,
+                    None => std::future::pending().await,
+                }
+            } => {
+                api_listener(msg,&mut audio_receiver,&mut audio_handler,&mut global_state,&mut api_data,&mut error_state);
+            }
         }
 
         if !request_handler_mounted {
@@ -81,8 +105,6 @@ pub async fn event_loop(
                 }
             }
         }
-
-        api_listener(&mut api_data_receiver, &mut audio_receiver, &mut audio_handler, &mut global_state, &mut api_data, &mut error_state);
 
         terminal.draw(|f| {
             ui(f, &global_state, &roudy_data, &api_data, &error_state);
