@@ -36,7 +36,7 @@ pub async fn event_loop(
     let mut access_token: Option<String> = None;
 
     let mut global_state = Roudy::new();
-    let mut roudy_data = RoudyData::new();
+    let mut roudy_data = RoudyData::new((audio_handler.paused.clone(), audio_handler.volume.clone()));
     let mut error_state = ErrorState::new();
     let mut api_data = ApiData::new();
     let (credentials_messenger, mut credentials_receiver) =
@@ -55,7 +55,7 @@ pub async fn event_loop(
                 }
             }
             Some(msg) = keybind_receiver.recv() => {
-                let shutdown = keypress_listener(msg,&req_api_data,&mut global_state,&mut api_data,audio_handler.paused.clone(), audio_handler.volume.clone()).await;
+                let shutdown = keypress_listener(msg,&req_api_data,&mut global_state, &mut roudy_data,&mut api_data,audio_handler.paused.clone(), audio_handler.volume.clone()).await;
                 if shutdown {
                     keybind_receiver.close();
                     server_receiver.close();

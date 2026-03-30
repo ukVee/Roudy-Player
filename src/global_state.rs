@@ -1,3 +1,5 @@
+use std::sync::{Arc, atomic::{AtomicBool, AtomicU32}};
+
 use oauth2::url::Url;
 
 use crate::api::soundcloud::{playlists::{playlist::APIPlaylist, playlist_tracks::APIPlaylistTracks}, profile::APIProfile};
@@ -74,23 +76,30 @@ impl Roudy {
     }
 }
 
-
 pub enum RoudyDataMessage {
     SetLoginURL(Url),
+    SetCurrentTrack(APIPlaylistTracks)
 }
 pub struct RoudyData {
     pub login_url: Option<Url>,    
+    pub track_controls: (Arc<AtomicBool>, Arc<AtomicU32>),
+    pub current_track: Option<APIPlaylistTracks>,
 }
 impl RoudyData {
-    pub fn new() -> Self {
+    pub fn new(controls: (Arc<AtomicBool>, Arc<AtomicU32>)) -> Self {
         Self {
             login_url: None,
+            track_controls: controls,
+            current_track: None,
         }
     }
     pub fn update(model: &mut RoudyData, msg: RoudyDataMessage) -> Option<RoudyDataMessage> {
         match msg {
             RoudyDataMessage::SetLoginURL(url) => {
                 model.login_url = Some(url);
+            }
+            RoudyDataMessage::SetCurrentTrack(track_data) => {
+                model.current_track = Some(track_data);
             }
         }
         None

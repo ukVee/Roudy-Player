@@ -3,7 +3,7 @@ use tokio::sync::mpsc::Sender;
 
 use crate::{
     api::request_handler::ClientEvent,
-    global_state::{ApiData, HomepageSubpage, Roudy, RoudyMessage},
+    global_state::{ApiData, HomepageSubpage, Roudy, RoudyData, RoudyMessage},
 };
 
 
@@ -12,6 +12,7 @@ pub async fn listen_for_homepage_binds(
     key: KeyEvent,
     req_api_data: &Option<Sender<ClientEvent>>,
     global_state: &mut Roudy,
+    roudy_data: &mut RoudyData,
     api_data: &mut ApiData,
 ) {
     match global_state.homepage_subpage {
@@ -89,7 +90,9 @@ pub async fn listen_for_homepage_binds(
                 if let Some(sender) = req_api_data {
                     if let Some(tracks) = api_data.playlist_tracks.as_ref() {
                         let id = &tracks[global_state.homepage_tracks_scroll_offset as usize].urn;
+                        let current_playing_track = &tracks[global_state.homepage_tracks_scroll_offset as usize];
                         let _ = sender.send(ClientEvent::StreamTrack(id.to_string())).await;
+                        RoudyData::update(roudy_data, crate::global_state::RoudyDataMessage::SetCurrentTrack(current_playing_track.clone()));
                     }
                 }
             }
