@@ -3,9 +3,12 @@ use serde::{Deserialize};
 
 #[derive(Deserialize)]
 pub struct TrackUrls {
-        pub _http_mp3_128_url: String,
         pub hls_mp3_128_url: String,
+        #[serde(rename = "http_mp3_128_url")]
+        pub _http_mp3_128_url: String,
+        #[serde(rename = "hls_aac_160_url")]
         pub _hls_aac_160_url: String,
+        #[serde(rename = "preview_mp3_128_url")]
         pub _preview_mp3_128_url: String,
 }
 

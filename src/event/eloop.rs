@@ -1,6 +1,6 @@
 use crate::{
     api::request_handler::{ApiOutput, ApiRequestHandler, ClientEvent},
-    audio::audio_handler::AudioHandler,
+    audio::audio_handler::{AudioCommand, AudioHandler},
     auth::{
         credentials_manager::{CredentialsEvent, CredentialsManager},
         server::start_server,
@@ -8,7 +8,7 @@ use crate::{
     event::{
         api_output_listener::api_listener,
         auth_server_listener::auth_server_listener,
-        credentials_output_listener::{credentials_listener},
+        credentials_output_listener::credentials_listener,
         keybind::{
             keypress_output_listener::keypress_listener, keypress_polling::setup_event_polling,
         },
@@ -45,7 +45,6 @@ pub async fn event_loop(
 
     let mut get_access_token: GetAccessToken = None;
     let mut csrf_token: Option<oauth2::CsrfToken> = None;
-
     loop {
         tokio::select! {
             Some(msg) = credentials_receiver.recv() => {
@@ -56,10 +55,11 @@ pub async fn event_loop(
                 }
             }
             Some(msg) = keybind_receiver.recv() => {
-                let shutdown = keypress_listener(msg,&req_api_data,&mut global_state,&mut api_data,).await;
+                let shutdown = keypress_listener(msg,&req_api_data,&mut global_state,&mut api_data,audio_handler.paused.clone(), audio_handler.volume.clone()).await;
                 if shutdown {
                     keybind_receiver.close();
                     server_receiver.close();
+                    let _ = audio_receiver.send(AudioCommand::Shutdown);
                     if let Some(rx) = api_data_receiver.as_mut() {
                         rx.close();
                     }

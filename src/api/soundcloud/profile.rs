@@ -2,7 +2,8 @@ use reqwest::{Error};
 
 #[derive(serde::Deserialize, Debug)]
 pub struct APIProfile {
-    pub avatar_url: String,
+    #[serde(rename = "avatar_url")]
+    pub _avatar_url: String,
     pub username: String,
     pub description: Option<String>,
     pub plan: String,

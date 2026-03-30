@@ -1,6 +1,9 @@
+use std::sync::atomic::{AtomicBool, AtomicU32};
+use std::sync::Arc;
 use ratatui::crossterm::event::KeyCode;
 use tokio::sync::mpsc::{Sender};
 
+use crate::event::keybind::audio_keybinds::listen_for_audio_keybinds;
 use crate::{
     api::request_handler::ClientEvent,
     event::keybind::homepage_keybinds::listen_for_homepage_binds,
@@ -13,6 +16,8 @@ pub async fn keypress_listener(
     req_api_data: &Option<Sender<ClientEvent>>,
     global_state: &mut Roudy,
     api_data: &mut ApiData,
+    paused: Arc<AtomicBool>,
+    volume: Arc<AtomicU32>,
 ) -> bool {
     let mut shutdown_flag = false;
 
@@ -68,6 +73,7 @@ pub async fn keypress_listener(
             if global_state.selected_tab == SelectedTab::Home {
                 listen_for_homepage_binds(key, &req_api_data, global_state, api_data).await;
             }
+            listen_for_audio_keybinds(key, paused, volume);
         }
     }
     shutdown_flag
