@@ -7,6 +7,7 @@ pub struct APIPlaylistTracks {
         pub title: String,
         pub description: Option<String>,
         pub duration: u64,
+        pub tag_list: String,
 }
 
 pub async fn get_playlist_tracks(client: &reqwest::Client, token: &str, playlist_urn: String) -> Result<Vec<APIPlaylistTracks>, reqwest::Error> {
