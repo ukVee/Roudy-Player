@@ -14,13 +14,11 @@ pub fn listen_for_audio_keybinds(key: KeyEvent, paused: Arc<AtomicBool>, volume:
         }
     }else if key.code == KeyCode::Char('-') {
         let new_vol = volume_level - 0.05;
-        if new_vol >= 0.0 {
-            volume.store(new_vol.clamp(0.0, 1.0).to_bits(), Ordering::Relaxed);
-        }
+        volume.store(new_vol.clamp(0.0, 1.0).to_bits(), Ordering::Relaxed);
+        
     }else if key.code == KeyCode::Char('=') {
         let new_vol = volume_level + 0.10;
-        if new_vol  <= 1.0 {
-            volume.store(new_vol.clamp(0.0, 1.0).to_bits(), Ordering::Relaxed);
-        }
+        volume.store(new_vol.clamp(0.0, 1.0).to_bits(), Ordering::Relaxed);
+        
     }
 }
